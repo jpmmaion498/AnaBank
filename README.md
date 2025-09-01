@@ -25,15 +25,15 @@ AnaBank/
 ?   ??? docker-compose.dev.yml   # Desenvolvimento
 ?   ??? nginx/                    # Load balancer
 ??? config/                       # Configurações
-?   ??? appsettings.*.json       # Configurações por ambiente
 ?   ??? Scripts/                  # Scripts SQL
+?   ??? *.md                      # Documentação de configuração
 ??? tools/                        # Ferramentas e scripts
 ?   ??? Makefile                  # Comandos de automação
 ?   ??? start.sh/start.bat        # Scripts de inicialização
 ?   ??? stop.sh                   # Scripts de parada
 ??? docs/                         # Documentação
     ??? ARCHITECTURE.md           # Arquitetura detalhada
-    ??? API_GUIDE.md             # Guia das APIs
+    ??? API_GUIDE.md              # Guia das APIs
 ```
 
 ## Arquitetura
