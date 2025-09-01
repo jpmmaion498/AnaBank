@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnaBank.Accounts.Application\AnaBank.Accounts.Application.csproj" />
+    <ProjectReference Include="..\AnaBank.Accounts.Infrastructure\AnaBank.Accounts.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\AnaBank.BuildingBlocks.Web\AnaBank.BuildingBlocks.Web.csproj" />
+  </ItemGroup>
+
+</Project>

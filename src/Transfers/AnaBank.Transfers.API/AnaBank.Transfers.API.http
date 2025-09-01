@@ -1,0 +1,6 @@
+@AnaBank.Transfers.API_HostAddress = http://localhost:5288
+
+GET {{AnaBank.Transfers.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

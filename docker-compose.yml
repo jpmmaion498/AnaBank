@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Zookeeper para Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  # API de Contas
+  accounts-api:
+    build:
+      context: .
+      dockerfile: src/Accounts/AnaBank.Accounts.API/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_accounts.db
+      - Jwt__SecretKey=sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres
+      - Jwt__Issuer=AnaBank
+      - Jwt__Audience=AnaBank.APIs
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+
+  # API de Transferências
+  transfers-api:
+    build:
+      context: .
+      dockerfile: src/Transfers/AnaBank.Transfers.API/Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_transfers.db
+      - Services__AccountsApi=http://accounts-api:8080
+      - Jwt__SecretKey=sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres
+      - Jwt__Issuer=AnaBank
+      - Jwt__Audience=AnaBank.APIs
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+      - accounts-api
+
+  # Worker de Tarifas (Opcional)
+  fees-worker:
+    build:
+      context: .
+      dockerfile: src/Fees/AnaBank.Fees.Worker/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_fees.db
+      - ConnectionStrings__Kafka=kafka:9092
+      - FeeSettings__TransferFeeAmount=2.00
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+
+  # Redis para Cache (Diferencial)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
