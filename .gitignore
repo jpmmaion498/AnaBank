@@ -361,3 +361,27 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# AnaBank specific
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Docker data
+deploy/data/
+.docker/
+
+# Test results
+test-results/
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.production
+*.local
+
+# Temporary files
+temp/
+local/

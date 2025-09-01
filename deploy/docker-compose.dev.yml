@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Apenas para desenvolvimento - sem produção
+  accounts-api:
+    build:
+      context: ..
+      dockerfile: src/Accounts/AnaBank.Accounts.API/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_accounts_dev.db
+      - Jwt__SecretKey=chave-de-desenvolvimento-nao-usar-em-producao-123456789
+    volumes:
+      - ./data:/data
+    networks:
+      - anabank-dev
+
+  transfers-api:
+    build:
+      context: ..
+      dockerfile: src/Transfers/AnaBank.Transfers.API/Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_transfers_dev.db
+      - Services__AccountsApi=http://accounts-api:8080
+      - Jwt__SecretKey=chave-de-desenvolvimento-nao-usar-em-producao-123456789
+    volumes:
+      - ./data:/data
+    depends_on:
+      - accounts-api
+    networks:
+      - anabank-dev
+
+networks:
+  anabank-dev:
+    driver: bridge

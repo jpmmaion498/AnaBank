@@ -4,15 +4,19 @@ services:
   # Zookeeper para Kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    container_name: anabank-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - anabank-network
 
   # Kafka
   kafka:
     image: confluentinc/cp-kafka:latest
+    container_name: anabank-kafka
     depends_on:
       - zookeeper
     ports:
@@ -23,35 +27,61 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - anabank-network
+
+  # Redis para Cache
+  redis:
+    image: redis:7-alpine
+    container_name: anabank-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - anabank-network
 
   # API de Contas
   accounts-api:
     build:
-      context: .
+      context: ..
       dockerfile: src/Accounts/AnaBank.Accounts.API/Dockerfile
+    container_name: anabank-accounts-api
     ports:
       - "8081:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_accounts.db
+      - ConnectionStrings__Redis=redis:6379
       - Jwt__SecretKey=sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres
       - Jwt__Issuer=AnaBank
       - Jwt__Audience=AnaBank.APIs
     volumes:
       - ./data:/data
     depends_on:
-      - kafka
+      - redis
+    networks:
+      - anabank-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # API de Transferências
   transfers-api:
     build:
-      context: .
+      context: ..
       dockerfile: src/Transfers/AnaBank.Transfers.API/Dockerfile
+    container_name: anabank-transfers-api
     ports:
       - "8082:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_transfers.db
+      - ConnectionStrings__Redis=redis:6379
       - Services__AccountsApi=http://accounts-api:8080
       - Jwt__SecretKey=sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres
       - Jwt__Issuer=AnaBank
@@ -59,14 +89,23 @@ services:
     volumes:
       - ./data:/data
     depends_on:
-      - kafka
       - accounts-api
+      - redis
+    networks:
+      - anabank-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Worker de Tarifas (Opcional)
   fees-worker:
     build:
-      context: .
+      context: ..
       dockerfile: src/Fees/AnaBank.Fees.Worker/Dockerfile
+    container_name: anabank-fees-worker
     environment:
       - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_fees.db
       - ConnectionStrings__Kafka=kafka:9092
@@ -75,15 +114,30 @@ services:
       - ./data:/data
     depends_on:
       - kafka
+    networks:
+      - anabank-network
+    restart: unless-stopped
 
-  # Redis para Cache (Diferencial)
-  redis:
-    image: redis:7-alpine
+  # Nginx como Load Balancer/Proxy (Diferencial)
+  nginx:
+    image: nginx:alpine
+    container_name: anabank-nginx
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "80:80"
+      - "443:443"
     volumes:
-      - redis_data:/data
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - accounts-api
+      - transfers-api
+    networks:
+      - anabank-network
+    restart: unless-stopped
+
+networks:
+  anabank-network:
+    driver: bridge
 
 volumes:
   redis_data:

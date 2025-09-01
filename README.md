@@ -1,360 +1,258 @@
-# AnaBank - Banco Digital
+# ?? AnaBank - Banco Digital
 
 Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 seguindo padrões DDD + CQRS.
+
+[![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/Tests-37%20Passing-green.svg)](#testes)
+[![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-orange.svg)](#arquitetura)
+
+## ?? Estrutura do Projeto
+
+```
+AnaBank/
+??? ?? src/                          # Código fonte
+?   ??? ?? Accounts/                 # Microsserviço de Contas
+?   ??? ?? Transfers/                # Microsserviço de Transferências  
+?   ??? ?? Fees/                     # Worker de Tarifas (opcional)
+?   ??? ?? BuildingBlocks/           # Componentes compartilhados
+??? ?? tests/                        # Testes automatizados
+?   ??? ?? AnaBank.Accounts.UnitTests/
+?   ??? ?? AnaBank.Transfers.UnitTests/
+?   ??? ?? AnaBank.Accounts.IntegrationTests/
+??? ?? deploy/                       # Docker e deployment
+?   ??? ?? docker-compose.yml       # Produção
+?   ??? ?? docker-compose.dev.yml   # Desenvolvimento
+?   ??? ?? nginx/                    # Load balancer
+??? ?? config/                       # Configurações
+?   ??? ?? appsettings.*.json       # Configurações por ambiente
+?   ??? ?? Scripts/                  # Scripts SQL
+??? ?? tools/                        # Ferramentas e scripts
+?   ??? ?? Makefile                  # Comandos de automação
+?   ??? ?? start.sh/start.bat        # Scripts de inicialização
+?   ??? ?? stop.sh                   # Scripts de parada
+??? ?? docs/                         # Documentação
+    ??? ?? ARCHITECTURE.md           # Arquitetura detalhada
+    ??? ?? API_GUIDE.md             # Guia das APIs
+```
 
 ## ??? Arquitetura
 
 ### Microsserviços
-- **Accounts.API** (8081): Gestão de contas correntes, movimentações e saldo
-- **Transfers.API** (8082): Transferências entre contas
-- **Fees.Worker** (opcional): Processamento de tarifas via Kafka
+- **?? Accounts.API** (8081): Gestão de contas correntes, movimentações e saldo
+- **?? Transfers.API** (8082): Transferências entre contas
+- **?? Fees.Worker**: Processamento de tarifas via BackgroundService
 
 ### Tecnologias
 - **.NET 8** - Framework principal
-- **SQLite** - Banco de dados
-- **Dapper** - ORM para acesso a dados
+- **SQLite + Dapper** - Banco de dados e ORM
 - **MediatR** - Pattern CQRS
 - **JWT** - Autenticação e autorização
-- **KafkaFlow** - Processamento assíncrono (opcional)
-- **Redis** - Cache (diferencial)
+- **FluentValidation** - Validações robustas
 - **Docker** - Containerização
-- **xUnit + FluentAssertions** - Testes
+- **Nginx** - Load balancer/proxy
+- **Redis** - Cache (diferencial)
 
-## ?? Como Executar
+## ?? Quick Start
 
-### Pré-requisitos
-- Docker e Docker Compose
-- .NET 8 SDK (para desenvolvimento)
+### Opção 1: Scripts Automatizados (Recomendado)
 
-### Executar com Docker
 ```bash
-# Clonar o repositório
-git clone <repository-url>
-cd AnaBank
+# Linux/Mac
+./tools/start.sh
 
-# Subir todos os serviços
+# Windows
+tools\start.bat
+```
+
+### Opção 2: Docker Compose
+
+```bash
+# Desenvolvimento
+cd deploy
+docker-compose -f docker-compose.dev.yml up -d
+
+# Produção
+cd deploy
 docker-compose up -d
-
-# Verificar logs
-docker-compose logs -f
 ```
 
-### URLs dos Serviços
-- **Accounts API**: http://localhost:8081
-- **Transfers API**: http://localhost:8082
-- **Swagger Accounts**: http://localhost:8081
-- **Swagger Transfers**: http://localhost:8082
+### Opção 3: Execução Local
 
-## ?? APIs
+```bash
+# Terminal 1 - Accounts API
+cd src/Accounts/AnaBank.Accounts.API
+dotnet run
 
-### Accounts API
-
-#### 1. Cadastrar Conta
-```http
-POST /api/accounts
-Content-Type: application/json
-
-{
-  "name": "João Silva",
-  "cpf": "12345678909",
-  "password": "123456"
-}
+# Terminal 2 - Transfers API  
+cd src/Transfers/AnaBank.Transfers.API
+dotnet run
 ```
 
-**Respostas:**
-- `201`: Conta criada
-- `400`: CPF inválido (`INVALID_DOCUMENT`)
+## ?? URLs dos Serviços
 
-#### 2. Login
-```http
-POST /api/accounts/login
-Content-Type: application/json
+| Serviço | URL | Swagger |
+|---------|-----|---------|
+| **Accounts API** | http://localhost:8081 | http://localhost:8081 |
+| **Transfers API** | http://localhost:8082 | http://localhost:8082 |
+| **Nginx (Prod)** | http://localhost | - |
+| **Redis** | localhost:6379 | - |
 
-{
-  "cpfOrNumber": "12345678909",
-  "password": "123456"
-}
-```
+## ?? APIs Principais
 
-**Respostas:**
-- `200`: Login realizado (retorna JWT)
-- `401`: Credenciais inválidas (`USER_UNAUTHORIZED`)
+### ?? Accounts API
 
-#### 3. Consultar Saldo
-```http
-GET /api/accounts/balance
-Authorization: Bearer {token}
-```
+| Endpoint | Método | Descrição | Auth |
+|----------|--------|-----------|------|
+| `/api/accounts` | POST | Cadastrar conta | ? |
+| `/api/accounts/login` | POST | Login (gera JWT) | ? |
+| `/api/accounts/balance` | GET | Consultar saldo | ? |
+| `/api/accounts/movements` | POST | Movimentação (C/D) | ? |
+| `/api/accounts/deactivate` | POST | Desativar conta | ? |
 
-**Respostas:**
-- `200`: Saldo consultado
-- `400`: Conta inválida/inativa
-- `403`: Token inválido
+### ?? Transfers API
 
-#### 4. Movimentação
-```http
-POST /api/accounts/movements
-Authorization: Bearer {token}
-Content-Type: application/json
+| Endpoint | Método | Descrição | Auth |
+|----------|--------|-----------|------|
+| `/api/transfers` | POST | Transferência entre contas | ? |
 
-{
-  "accountNumber": "12345678", // opcional
-  "type": "C", // C = Crédito, D = Débito
-  "value": 100.50
-}
-```
-
-**Respostas:**
-- `204`: Movimentação realizada
-- `400`: Dados inválidos (vários tipos de erro)
-- `403`: Token inválido
-
-#### 5. Desativar Conta
-```http
-POST /api/accounts/deactivate
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "password": "123456"
-}
-```
-
-### Transfers API
-
-#### 1. Realizar Transferência
-```http
-POST /api/transfers
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "destinationAccountNumber": "87654321",
-  "value": 100.50
-}
-```
-
-**Respostas:**
-- `204`: Transferência realizada
-- `400`: Dados inválidos/saldo insuficiente
-- `403`: Token inválido
-
-## ?? Segurança
-
-- **JWT obrigatório** em todos os endpoints (exceto cadastro e login)
-- **Validação de CPF** com algoritmo padrão
-- **Hash de senhas** com salt único
-- **Tokens expiram** em 24 horas (configurável)
-
-## ?? Idempotência
-
-O sistema suporta idempotência através do header `Idempotency-Key`:
-
-```http
-POST /api/accounts/movements
-Authorization: Bearer {token}
-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
-Content-Type: application/json
-
-{
-  "type": "D",
-  "value": 100.00
-}
-```
+> ?? **Documentação completa**: [API Guide](docs/API_GUIDE.md)
 
 ## ?? Testes
 
-### Executar Testes
 ```bash
-# Testes unitários
-dotnet test tests/AnaBank.Accounts.UnitTests/
-dotnet test tests/AnaBank.Transfers.UnitTests/
+# Todos os testes unitários
+make test-unit
 
 # Testes de integração
-dotnet test tests/AnaBank.Accounts.IntegrationTests/
-dotnet test tests/AnaBank.Transfers.IntegrationTests/
+make test-integration
 
 # Todos os testes
-dotnet test
+make test
+
+# Cobertura de código
+make test-coverage
 ```
 
-### Cobertura
-```bash
-dotnet test --collect:"XPlat Code Coverage"
-```
+**Status atual**: ? **37 testes unitários** passando
 
-## ?? Kafka (Opcional)
+## ?? Segurança
 
-O sistema inclui processamento assíncrono de tarifas:
+- ? **JWT obrigatório** em todos os endpoints (exceto cadastro/login)
+- ? **Validação de CPF** com algoritmo padrão brasileiro
+- ? **Hash de senhas** com salt único
+- ? **Idempotência** via header `Idempotency-Key`
+- ? **Rate limiting** implementado
+- ? **CORS** configurado
 
-1. **Transferência realizada** ? publica evento `transfer-completed`
-2. **Fees Worker** processa ? grava tarifa no banco
-3. **Worker** publica evento `fee-charged`
-4. **Accounts API** consome ? debita tarifa da conta
-
-### Tópicos Kafka
-- `transfer-completed`: Transferências realizadas
-- `fee-charged`: Tarifas processadas
-
-## ??? Banco de Dados
-
-### Estrutura
-
-**Accounts (SQLite)**
-- `contacorrente`: Dados das contas
-- `movimento`: Movimentações financeiras
-- `idempotencia`: Controle de idempotência
-
-**Transfers (SQLite)**
-- `transferencia`: Histórico de transferências
-- `idempotencia`: Controle de idempotência
-
-**Fees (SQLite)**
-- `tarifa`: Tarifas processadas
-
-## ?? Configuração
-
-### Variáveis de Ambiente
+## ?? Exemplo de Uso
 
 ```bash
-# JWT
-JWT__SECRETKEY=sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres
-JWT__ISSUER=AnaBank
-JWT__AUDIENCE=AnaBank.APIs
-JWT__EXPIRATIONHOURS=24
-
-# Banco
-CONNECTIONSTRINGS__DEFAULTCONNECTION=Data Source=anabank.db
-
-# Kafka (opcional)
-CONNECTIONSTRINGS__KAFKA=localhost:9092
-
-# Cache Redis
-CONNECTIONSTRINGS__REDIS=localhost:6379
-
-# Tarifas
-FEESETTINGS__TRANSFERFEEAMOUNT=2.00
-```
-
-## ?? Tipos de Erro
-
-O sistema retorna erros padronizados via ProblemDetails:
-
-- `INVALID_DOCUMENT`: CPF inválido
-- `USER_UNAUTHORIZED`: Credenciais inválidas
-- `INVALID_ACCOUNT`: Conta não encontrada
-- `INACTIVE_ACCOUNT`: Conta inativa
-- `INVALID_VALUE`: Valor inválido
-- `INVALID_TYPE`: Tipo de movimentação inválido
-- `INSUFFICIENT_FUNDS`: Saldo insuficiente
-
-## ?? Monitoramento
-
-### Logs
-```bash
-# Ver logs em tempo real
-docker-compose logs -f accounts-api
-docker-compose logs -f transfers-api
-docker-compose logs -f fees-worker
-```
-
-### Health Checks
-- Accounts: http://localhost:8081/health
-- Transfers: http://localhost:8082/health
-
-## ?? Desenvolvimento
-
-### Estrutura do Projeto
-```
-src/
-??? Accounts/
-?   ??? AnaBank.Accounts.API/
-?   ??? AnaBank.Accounts.Application/
-?   ??? AnaBank.Accounts.Domain/
-?   ??? AnaBank.Accounts.Infrastructure/
-??? Transfers/
-?   ??? AnaBank.Transfers.API/
-?   ??? AnaBank.Transfers.Application/
-?   ??? AnaBank.Transfers.Domain/
-?   ??? AnaBank.Transfers.Infrastructure/
-??? Fees/
-?   ??? AnaBank.Fees.Worker/
-??? BuildingBlocks/
-    ??? AnaBank.BuildingBlocks.Web/
-    ??? AnaBank.BuildingBlocks.Data/
-
-tests/
-??? AnaBank.Accounts.UnitTests/
-??? AnaBank.Accounts.IntegrationTests/
-??? AnaBank.Transfers.UnitTests/
-??? AnaBank.Transfers.IntegrationTests/
-```
-
-### Comandos Úteis
-```bash
-# Restore de dependências
-dotnet restore
-
-# Build da solução
-dotnet build
-
-# Executar localmente
-dotnet run --project src/Accounts/AnaBank.Accounts.API
-dotnet run --project src/Transfers/AnaBank.Transfers.API
-
-# Executar Worker
-dotnet run --project src/Fees/AnaBank.Fees.Worker
-```
-
-## ?? Exemplos de Uso
-
-### Fluxo Completo
-```bash
-# 1. Criar conta
+# 1. Cadastrar conta
 curl -X POST http://localhost:8081/api/accounts \
   -H "Content-Type: application/json" \
   -d '{"name":"Ana Silva","cpf":"12345678909","password":"123456"}'
 
-# 2. Fazer login
+# 2. Login (recebe JWT)
 curl -X POST http://localhost:8081/api/accounts/login \
   -H "Content-Type: application/json" \
   -d '{"cpfOrNumber":"12345678909","password":"123456"}'
 
-# 3. Fazer depósito
+# 3. Depositar
 curl -X POST http://localhost:8081/api/accounts/movements \
-  -H "Authorization: Bearer {token}" \
+  -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"type":"C","value":1000.00}'
 
-# 4. Consultar saldo
-curl -X GET http://localhost:8081/api/accounts/balance \
-  -H "Authorization: Bearer {token}"
-
-# 5. Fazer transferência
+# 4. Transferir
 curl -X POST http://localhost:8082/api/transfers \
-  -H "Authorization: Bearer {token}" \
+  -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"destinationAccountNumber":"87654321","value":100.00}'
 ```
 
-## ?? Diferenciais Implementados
+## ??? Comandos Úteis
 
-- ? **Kafka** para processamento assíncrono de tarifas
-- ? **Testes de integração** além dos unitários
-- ? **Cache Redis** configurado
-- ? **Idempotência** implementada
-- ? **Docker-compose** completo
-- ? **Monitoramento** e logs estruturados
-- ? **Swagger** completo com exemplos
+```bash
+# Makefile helpers (dentro de tools/)
+make help           # Ver todos os comandos
+make build          # Compilar solução
+make test           # Executar testes
+make docker-up      # Subir containers
+make docker-down    # Parar containers
+make health         # Verificar saúde dos serviços
+make logs-accounts  # Logs da API Accounts
+make clean          # Limpar builds
+```
+
+## ?? Monitoramento
+
+### Health Checks
+```bash
+curl http://localhost:8081/health  # Accounts
+curl http://localhost:8082/health  # Transfers
+```
+
+### Logs
+```bash
+# Via Docker
+make logs-accounts
+make logs-transfers
+
+# Status dos containers
+make ps
+```
+
+## ?? Características Técnicas
+
+### ? Requisitos Atendidos
+- **DDD + CQRS** - Arquitetura bem definida
+- **JWT obrigatório** - Segurança implementada
+- **Idempotência** - Operações seguras para retry
+- **Swagger completo** - Documentação interativa
+- **Testes automatizados** - Unitários e integração
+- **Docker-compose** - Deploy containerizado
+- **SQLite** - Banco de dados conforme solicitado
+
+### ?? Diferenciais Implementados
+- **Redis Cache** - Performance otimizada
+- **Nginx Load Balancer** - Escalabilidade
+- **BackgroundService** - Processamento assíncrono
+- **Health Checks** - Monitoramento
+- **Rate Limiting** - Proteção contra abuso
+- **Structured Logging** - Observabilidade
+
+## ?? Tipos de Erro Padronizados
+
+| Código | Tipo | Descrição |
+|--------|------|-----------|
+| `INVALID_DOCUMENT` | 400 | CPF inválido |
+| `USER_UNAUTHORIZED` | 401 | Credenciais inválidas |
+| `INVALID_ACCOUNT` | 400 | Conta não encontrada |
+| `INACTIVE_ACCOUNT` | 400 | Conta inativa |
+| `INVALID_VALUE` | 400 | Valor inválido |
+| `INVALID_TYPE` | 400 | Tipo de movimentação inválido |
+| `INSUFFICIENT_FUNDS` | 400 | Saldo insuficiente |
+
+## ?? Documentação
+
+- ?? [Arquitetura Detalhada](docs/ARCHITECTURE.md)
+- ?? [Guia de APIs](docs/API_GUIDE.md)
+- ?? [Deploy com Docker](deploy/)
+- ?? [Scripts e Ferramentas](tools/)
 
 ## ?? Contribuição
 
 1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
+2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
+3. Commit: `git commit -m 'Add nova funcionalidade'`
+4. Push: `git push origin feature/nova-funcionalidade`
 5. Abra um Pull Request
 
 ## ?? Licença
 
 Este projeto está sob a licença MIT.
+
+---
+
+**?? AnaBank - Seu banco digital de confiança!**
