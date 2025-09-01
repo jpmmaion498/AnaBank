@@ -1,12 +1,12 @@
 # AnaBank - Guia de APIs
 
-## ?? Visão Geral
+## Visão Geral
 
 O AnaBank expõe duas APIs principais:
 - **Accounts API** (porta 8081): Gestão de contas e movimentações
 - **Transfers API** (porta 8082): Transferências entre contas
 
-## ?? Autenticação
+## Autenticação
 
 Todas as APIs (exceto cadastro e login) requerem autenticação via JWT Bearer token.
 
@@ -14,13 +14,13 @@ Todas as APIs (exceto cadastro e login) requerem autenticação via JWT Bearer tok
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-## ?? Accounts API
+## Accounts API
 
 ### Base URL: `http://localhost:8081/api/accounts`
 
 ---
 
-### 1. ?? Cadastrar Conta
+### 1. Cadastrar Conta
 
 ```http
 POST /api/accounts
@@ -57,7 +57,7 @@ Content-Type: application/json
 
 ---
 
-### 2. ?? Login
+### 2. Login
 
 ```http
 POST /api/accounts/login
@@ -92,7 +92,7 @@ Content-Type: application/json
 
 ---
 
-### 3. ?? Consultar Saldo
+### 3. Consultar Saldo
 
 ```http
 GET /api/accounts/balance
@@ -116,7 +116,7 @@ Authorization: Bearer {token}
 
 ---
 
-### 4. ?? Movimentação (Crédito/Débito)
+### 4. Movimentação (Crédito/Débito)
 
 ```http
 POST /api/accounts/movements
@@ -150,7 +150,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 
 ---
 
-### 5. ?? Desativar Conta
+### 5. Desativar Conta
 
 ```http
 POST /api/accounts/deactivate
@@ -169,13 +169,13 @@ Content-Type: application/json
 
 ---
 
-## ?? Transfers API
+## Transfers API
 
 ### Base URL: `http://localhost:8082/api/transfers`
 
 ---
 
-### 1. ?? Realizar Transferência
+### 1. Realizar Transferência
 
 ```http
 POST /api/transfers
@@ -210,7 +210,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440001
 
 ---
 
-## ?? Headers Especiais
+## Headers Especiais
 
 ### Idempotência
 Para operações críticas (movimentações, transferências):
@@ -234,7 +234,7 @@ X-RateLimit-Reset: 1640995200
 
 ---
 
-## ?? Health Checks
+## Health Checks
 
 ### Verificar Saúde dos Serviços
 
@@ -252,7 +252,7 @@ GET /health
 
 ---
 
-## ?? Códigos de Status HTTP
+## Códigos de Status HTTP
 
 | Código | Significado | Uso |
 |--------|-------------|-----|
@@ -267,7 +267,7 @@ GET /health
 
 ---
 
-## ?? Exemplos de Fluxo Completo
+## Exemplos de Fluxo Completo
 
 ### Fluxo de Cadastro e Transferência
 
@@ -322,7 +322,7 @@ curl -X GET http://localhost:8081/api/accounts/balance \
 
 ---
 
-## ?? Troubleshooting
+## Troubleshooting
 
 ### Problemas Comuns
 

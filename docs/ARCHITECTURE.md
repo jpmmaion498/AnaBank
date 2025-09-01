@@ -1,10 +1,10 @@
 # AnaBank - Arquitetura e Design
 
-## ??? Visão Geral da Arquitetura
+## Visão Geral da Arquitetura
 
 O AnaBank foi desenvolvido seguindo os princípios de **Domain-Driven Design (DDD)** e **CQRS (Command Query Responsibility Segregation)**, implementado em **.NET 8** com microsserviços independentes.
 
-## ?? Diagrama de Arquitetura
+## Diagrama de Arquitetura
 
 ```mermaid
 graph TB
@@ -28,7 +28,7 @@ graph TB
     TransfersAPI --> Redis
 ```
 
-## ??? Camadas da Arquitetura (DDD)
+## Camadas da Arquitetura (DDD)
 
 ### **Domain Layer**
 - **Entities**: CurrentAccount, Movement, Transfer
@@ -53,7 +53,7 @@ graph TB
 - **Middleware**: JWT, Idempotência, Exception Handling
 - **Configuration**: DI, Swagger, CORS
 
-## ?? Padrões Implementados
+## Padrões Implementados
 
 ### **CQRS (Command Query Responsibility Segregation)**
 - **Commands**: Operações que modificam estado
@@ -73,7 +73,7 @@ graph TB
 - **Service Communication**: HTTP síncrono + Kafka assíncrono
 - **Health Checks**: Monitoramento de saúde
 
-## ?? Segurança
+## Segurança
 
 ### **Autenticação e Autorização**
 - **JWT Bearer Tokens**: Stateless authentication
@@ -87,7 +87,7 @@ graph TB
 - **Input Validation**: FluentValidation + Model binding
 - **SQL Injection**: Proteção via Dapper parametrizado
 
-## ?? Idempotência
+## Idempotência
 
 ### **Implementação**
 - **Idempotency-Key Header**: Cliente envia chave única
@@ -95,7 +95,7 @@ graph TB
 - **Storage**: SQLite para cache de respostas
 - **Retry Safety**: Operações seguras para reenvio
 
-## ?? Observabilidade
+## Observabilidade
 
 ### **Logging**
 - **Structured Logging**: JSON format
@@ -109,7 +109,7 @@ graph TB
 - **External Services**: Status de dependências
 - **Docker Health**: Container monitoring
 
-## ??? Persistência
+## Persistência
 
 ### **Database Design**
 - **SQLite**: Simplicidade e portabilidade
@@ -123,7 +123,7 @@ graph TB
 - **Connection Factory**: Gerenciamento de conexões
 - **Migration Scripts**: Versionamento de schema
 
-## ?? Qualidade e Testes
+## Qualidade e Testes
 
 ### **Testes Automatizados**
 - **Unit Tests**: xUnit + FluentAssertions
@@ -137,7 +137,7 @@ graph TB
 - **API Contracts**: Swagger/OpenAPI
 - **Error Handling**: ProblemDetails RFC
 
-## ?? Containerização
+## Containerização
 
 ### **Docker Strategy**
 - **Multi-stage Builds**: Otimização de imagens
@@ -151,7 +151,7 @@ graph TB
 - **Volume Mounts**: Persistência de dados
 - **Network Isolation**: Segurança de rede
 
-## ?? Escalabilidade
+## Escalabilidade
 
 ### **Horizontal Scaling**
 - **Stateless Services**: Facilita replicação
@@ -165,7 +165,7 @@ graph TB
 - **Response Caching**: HTTP caching headers
 - **Compression**: Gzip para payloads
 
-## ?? DevOps e CI/CD
+## DevOps e CI/CD
 
 ### **Build Pipeline**
 - **Multi-stage Dockerfile**: Build otimizado

@@ -1,4 +1,4 @@
-# ?? AnaBank - Banco Digital
+# AnaBank - Banco Digital
 
 Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 seguindo padrões DDD + CQRS.
 
@@ -7,41 +7,41 @@ Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 se
 [![Tests](https://img.shields.io/badge/Tests-37%20Passing-green.svg)](#testes)
 [![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-orange.svg)](#arquitetura)
 
-## ?? Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 AnaBank/
-??? ?? src/                          # Código fonte
-?   ??? ?? Accounts/                 # Microsserviço de Contas
-?   ??? ?? Transfers/                # Microsserviço de Transferências  
-?   ??? ?? Fees/                     # Worker de Tarifas (opcional)
-?   ??? ?? BuildingBlocks/           # Componentes compartilhados
-??? ?? tests/                        # Testes automatizados
-?   ??? ?? AnaBank.Accounts.UnitTests/
-?   ??? ?? AnaBank.Transfers.UnitTests/
-?   ??? ?? AnaBank.Accounts.IntegrationTests/
-??? ?? deploy/                       # Docker e deployment
-?   ??? ?? docker-compose.yml       # Produção
-?   ??? ?? docker-compose.dev.yml   # Desenvolvimento
-?   ??? ?? nginx/                    # Load balancer
-??? ?? config/                       # Configurações
-?   ??? ?? appsettings.*.json       # Configurações por ambiente
-?   ??? ?? Scripts/                  # Scripts SQL
-??? ?? tools/                        # Ferramentas e scripts
-?   ??? ?? Makefile                  # Comandos de automação
-?   ??? ?? start.sh/start.bat        # Scripts de inicialização
-?   ??? ?? stop.sh                   # Scripts de parada
-??? ?? docs/                         # Documentação
-    ??? ?? ARCHITECTURE.md           # Arquitetura detalhada
-    ??? ?? API_GUIDE.md             # Guia das APIs
+??? src/                          # Código fonte
+?   ??? Accounts/                 # Microsserviço de Contas
+?   ??? Transfers/                # Microsserviço de Transferências  
+?   ??? Fees/                     # Worker de Tarifas (opcional)
+?   ??? BuildingBlocks/           # Componentes compartilhados
+??? tests/                        # Testes automatizados
+?   ??? AnaBank.Accounts.UnitTests/
+?   ??? AnaBank.Transfers.UnitTests/
+?   ??? AnaBank.Accounts.IntegrationTests/
+??? deploy/                       # Docker e deployment
+?   ??? docker-compose.yml       # Produção
+?   ??? docker-compose.dev.yml   # Desenvolvimento
+?   ??? nginx/                    # Load balancer
+??? config/                       # Configurações
+?   ??? appsettings.*.json       # Configurações por ambiente
+?   ??? Scripts/                  # Scripts SQL
+??? tools/                        # Ferramentas e scripts
+?   ??? Makefile                  # Comandos de automação
+?   ??? start.sh/start.bat        # Scripts de inicialização
+?   ??? stop.sh                   # Scripts de parada
+??? docs/                         # Documentação
+    ??? ARCHITECTURE.md           # Arquitetura detalhada
+    ??? API_GUIDE.md             # Guia das APIs
 ```
 
-## ??? Arquitetura
+## Arquitetura
 
 ### Microsserviços
-- **?? Accounts.API** (8081): Gestão de contas correntes, movimentações e saldo
-- **?? Transfers.API** (8082): Transferências entre contas
-- **?? Fees.Worker**: Processamento de tarifas via BackgroundService
+- **Accounts.API** (8081): Gestão de contas correntes, movimentações e saldo
+- **Transfers.API** (8082): Transferências entre contas
+- **Fees.Worker**: Processamento de tarifas via BackgroundService
 
 ### Tecnologias
 - **.NET 8** - Framework principal
@@ -53,7 +53,7 @@ AnaBank/
 - **Nginx** - Load balancer/proxy
 - **Redis** - Cache (diferencial)
 
-## ?? Quick Start
+## Quick Start
 
 ### Opção 1: Scripts Automatizados (Recomendado)
 
@@ -89,7 +89,7 @@ cd src/Transfers/AnaBank.Transfers.API
 dotnet run
 ```
 
-## ?? URLs dos Serviços
+## URLs dos Serviços
 
 | Serviço | URL | Swagger |
 |---------|-----|---------|
@@ -98,9 +98,9 @@ dotnet run
 | **Nginx (Prod)** | http://localhost | - |
 | **Redis** | localhost:6379 | - |
 
-## ?? APIs Principais
+## APIs Principais
 
-### ?? Accounts API
+### Accounts API
 
 | Endpoint | Método | Descrição | Auth |
 |----------|--------|-----------|------|
@@ -110,15 +110,15 @@ dotnet run
 | `/api/accounts/movements` | POST | Movimentação (C/D) | ? |
 | `/api/accounts/deactivate` | POST | Desativar conta | ? |
 
-### ?? Transfers API
+### Transfers API
 
 | Endpoint | Método | Descrição | Auth |
 |----------|--------|-----------|------|
 | `/api/transfers` | POST | Transferência entre contas | ? |
 
-> ?? **Documentação completa**: [API Guide](docs/API_GUIDE.md)
+> **Documentação completa**: [API Guide](docs/API_GUIDE.md)
 
-## ?? Testes
+## Testes
 
 ```bash
 # Todos os testes unitários
@@ -136,7 +136,7 @@ make test-coverage
 
 **Status atual**: ? **37 testes unitários** passando
 
-## ?? Segurança
+## Segurança
 
 - ? **JWT obrigatório** em todos os endpoints (exceto cadastro/login)
 - ? **Validação de CPF** com algoritmo padrão brasileiro
@@ -145,7 +145,7 @@ make test-coverage
 - ? **Rate limiting** implementado
 - ? **CORS** configurado
 
-## ?? Exemplo de Uso
+## Exemplo de Uso
 
 ```bash
 # 1. Cadastrar conta
@@ -171,7 +171,7 @@ curl -X POST http://localhost:8082/api/transfers \
   -d '{"destinationAccountNumber":"87654321","value":100.00}'
 ```
 
-## ??? Comandos Úteis
+## Comandos Úteis
 
 ```bash
 # Makefile helpers (dentro de tools/)
@@ -185,7 +185,7 @@ make logs-accounts  # Logs da API Accounts
 make clean          # Limpar builds
 ```
 
-## ?? Monitoramento
+## Monitoramento
 
 ### Health Checks
 ```bash
@@ -203,9 +203,9 @@ make logs-transfers
 make ps
 ```
 
-## ?? Características Técnicas
+## Características Técnicas
 
-### ? Requisitos Atendidos
+### Requisitos Atendidos
 - **DDD + CQRS** - Arquitetura bem definida
 - **JWT obrigatório** - Segurança implementada
 - **Idempotência** - Operações seguras para retry
@@ -214,7 +214,7 @@ make ps
 - **Docker-compose** - Deploy containerizado
 - **SQLite** - Banco de dados conforme solicitado
 
-### ?? Diferenciais Implementados
+### Diferenciais Implementados
 - **Redis Cache** - Performance otimizada
 - **Nginx Load Balancer** - Escalabilidade
 - **BackgroundService** - Processamento assíncrono
@@ -222,7 +222,7 @@ make ps
 - **Rate Limiting** - Proteção contra abuso
 - **Structured Logging** - Observabilidade
 
-## ?? Tipos de Erro Padronizados
+## Tipos de Erro Padronizados
 
 | Código | Tipo | Descrição |
 |--------|------|-----------|
@@ -234,14 +234,14 @@ make ps
 | `INVALID_TYPE` | 400 | Tipo de movimentação inválido |
 | `INSUFFICIENT_FUNDS` | 400 | Saldo insuficiente |
 
-## ?? Documentação
+## Documentação
 
-- ?? [Arquitetura Detalhada](docs/ARCHITECTURE.md)
-- ?? [Guia de APIs](docs/API_GUIDE.md)
-- ?? [Deploy com Docker](deploy/)
-- ?? [Scripts e Ferramentas](tools/)
+- [Arquitetura Detalhada](docs/ARCHITECTURE.md)
+- [Guia de APIs](docs/API_GUIDE.md)
+- [Deploy com Docker](deploy/)
+- [Scripts e Ferramentas](tools/)
 
-## ?? Contribuição
+## Contribuição
 
 1. Fork o projeto
 2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
@@ -249,10 +249,10 @@ make ps
 4. Push: `git push origin feature/nova-funcionalidade`
 5. Abra um Pull Request
 
-## ?? Licença
+## Licença
 
 Este projeto está sob a licença MIT.
 
 ---
 
-**?? AnaBank - Seu banco digital de confiança!**
+**AnaBank - Seu banco digital de confiança!**
