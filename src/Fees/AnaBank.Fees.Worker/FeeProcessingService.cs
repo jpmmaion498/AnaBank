@@ -15,43 +15,25 @@ public class FeeProcessingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Fee Processing Service started");
+        _logger.LogInformation("Fee Processing Service started - Kafka Consumer Mode");
 
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            try
-            {
-                // Em uma implementação real, aqui consumiríamos mensagens do Kafka
-                // Por enquanto, simularemos o processamento a cada 30 segundos
-                await ProcessPendingFees();
-
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancellation is requested
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while processing fees");
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-            }
+            using var scope = _serviceProvider.CreateScope();
+            var kafkaConsumer = scope.ServiceProvider.GetRequiredService<IKafkaConsumerService>();
+            
+            await kafkaConsumer.StartConsumingAsync(stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Fee Processing Service stopped - cancellation requested");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fatal error in Fee Processing Service");
+            throw;
         }
 
         _logger.LogInformation("Fee Processing Service stopped");
-    }
-
-    private async Task ProcessPendingFees()
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var feeService = scope.ServiceProvider.GetRequiredService<IFeeService>();
-
-        // Simular processamento de tarifa
-        // Em uma implementação real, isso seria baseado em mensagens do Kafka
-        _logger.LogInformation("Checking for pending fees to process...");
-
-        // Exemplo: processar uma tarifa fictícia
-        // await feeService.ProcessTransferFeeAsync("account123", 100.00m, DateTime.UtcNow);
     }
 }

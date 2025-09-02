@@ -3,37 +3,60 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using AnaBank.BuildingBlocks.Data;
+using Microsoft.Extensions.Configuration;
+using AnaBank.Accounts.API.Services;
+using AnaBank.Accounts.API.BackgroundServices;
 
 namespace AnaBank.Accounts.IntegrationTests;
 
 public class AccountsApiWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private readonly SqliteConnection _connection;
+
+    public AccountsApiWebApplicationFactory()
+    {
+        _connection = new SqliteConnection("Data Source=test_db_" + Guid.NewGuid().ToString("N")[..8] + ".db");
+        _connection.Open();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {
-            // Remove o serviço de banco original
-            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDbConnectionFactory));
-            if (descriptor != null)
-                services.Remove(descriptor);
+            var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDbConnectionFactory));
+            if (dbDescriptor != null)
+                services.Remove(dbDescriptor);
 
-            // Adicionar banco de teste em memória
+            var bgServiceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(FeeProcessingBackgroundService));
+            if (bgServiceDescriptor != null)
+                services.Remove(bgServiceDescriptor);
+
+            var feeConsumerDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IFeeConsumerService));
+            if (feeConsumerDescriptor != null)
+                services.Remove(feeConsumerDescriptor);
+
             services.AddSingleton<IDbConnectionFactory>(_ => 
-                new SqliteConnectionFactory("Data Source=:memory:"));
+                new SqliteConnectionFactory(_connection.ConnectionString));
         });
 
         builder.UseEnvironment("Testing");
+        
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new[]
+            {
+                new KeyValuePair<string, string?>("ConnectionStrings:Kafka", ""),
+                new KeyValuePair<string, string?>("Jwt:SecretKey", "test-key-for-integration-tests-with-at-least-32-chars"),
+                new KeyValuePair<string, string?>("Jwt:Issuer", "AnaBank.Test"),
+                new KeyValuePair<string, string?>("Jwt:Audience", "AnaBank.Test"),
+                new KeyValuePair<string, string?>("Jwt:ExpirationHours", "1")
+            });
+        });
     }
 
     public async Task InitializeDatabaseAsync()
     {
-        var scopeFactory = Services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopeFactory.CreateScope();
-        var connectionFactory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
-
-        // Script SQL embutido para testes
         var script = @"
--- Tabela de contas correntes
 CREATE TABLE IF NOT EXISTS contacorrente (
     idcontacorrente TEXT(37) PRIMARY KEY,
     numero INTEGER(10) NOT NULL UNIQUE,
@@ -46,7 +69,6 @@ CREATE TABLE IF NOT EXISTS contacorrente (
     CHECK (ativo in (0,1))
 );
 
--- Tabela de movimentos
 CREATE TABLE IF NOT EXISTS movimento (
     idmovimento TEXT(37) PRIMARY KEY,
     idcontacorrente TEXT(37) NOT NULL,
@@ -57,26 +79,33 @@ CREATE TABLE IF NOT EXISTS movimento (
     FOREIGN KEY(idcontacorrente) REFERENCES contacorrente(idcontacorrente)
 );
 
--- Tabela de idempotência
 CREATE TABLE IF NOT EXISTS idempotencia (
     chave_idempotencia TEXT(37) PRIMARY KEY,
     requisicao TEXT(1000),
     resultado TEXT(1000)
 );
 
--- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_movimento_conta ON movimento(idcontacorrente);
 CREATE INDEX IF NOT EXISTS idx_movimento_data ON movimento(datamovimento);
 CREATE INDEX IF NOT EXISTS idx_contacorrente_cpf ON contacorrente(cpf);
 CREATE INDEX IF NOT EXISTS idx_contacorrente_numero ON contacorrente(numero);
+
+DELETE FROM contacorrente;
+DELETE FROM movimento;
+DELETE FROM idempotencia;
 ";
 
-        // Usar SqliteConnection concreta para métodos assíncronos
-        using var connection = connectionFactory.CreateConnection() as SqliteConnection;
-        await connection!.OpenAsync();
-        
-        using var command = connection.CreateCommand();
+        using var command = _connection.CreateCommand();
         command.CommandText = script;
         await command.ExecuteNonQueryAsync();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _connection?.Dispose();
+        }
+        base.Dispose(disposing);
     }
 }

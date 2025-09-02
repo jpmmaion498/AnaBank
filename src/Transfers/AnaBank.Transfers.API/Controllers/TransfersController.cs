@@ -36,7 +36,8 @@ public class TransfersController : ControllerBase
         try
         {
             var originAccountId = GetCurrentAccountId();
-            var command = new MakeTransferCommand(request.DestinationAccountNumber, request.Value, originAccountId);
+            var authToken = Request.Headers["Authorization"].FirstOrDefault() ?? "";
+            var command = new MakeTransferCommand(request.DestinationAccountNumber, request.Value, originAccountId, authToken);
             await _mediator.Send(command);
             
             return NoContent();
@@ -63,11 +64,17 @@ public class TransfersController : ControllerBase
 
     private string GetCurrentAccountId()
     {
-        var subClaim = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(subClaim))
-            throw new UnauthorizedAccessException("Token inválido");
+        // Buscar accountId nas diferentes possibilidades
+        var accountId = User.FindFirst("sub")?.Value ??
+                       User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
+                       User.FindFirst("accountId")?.Value;
         
-        return subClaim;
+        if (string.IsNullOrEmpty(accountId))
+        {
+            throw new UnauthorizedAccessException("Token inválido - nenhum claim de identificação encontrado");
+        }
+        
+        return accountId;
     }
 
     private Microsoft.AspNetCore.Mvc.ProblemDetails CreateValidationProblem(string type, string title, string detail)

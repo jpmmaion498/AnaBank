@@ -26,7 +26,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Copiar scripts SQL
-COPY Scripts/ /app/Scripts/
-
 ENTRYPOINT ["dotnet", "AnaBank.Fees.Worker.dll"]

@@ -5,12 +5,18 @@ var builder = Host.CreateApplicationBuilder(args);
 
 // Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-    "Data Source=anabank_fees.db";
+    "Data Source=anabank_fees_dev.db";
 
 builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqliteConnectionFactory(connectionString));
+
+// HTTP Client para comunicação com APIs
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IFeeService, FeeService>();
 
-// Background Service para processar tarifas
+// Kafka Consumer Service
+builder.Services.AddScoped<IKafkaConsumerService, KafkaConsumerService>();
+
+// Background Service para processar tarifas via Kafka
 builder.Services.AddHostedService<AnaBank.Fees.Worker.FeeProcessingService>();
 
 var host = builder.Build();
@@ -24,27 +30,41 @@ static async Task InitializeDatabase(string connectionString)
 {
     try
     {
-        var scriptPath = Path.Combine(AppContext.BaseDirectory, "../../../Scripts/fees-sqlite.sql");
-        if (!File.Exists(scriptPath))
+        // SEMPRE remover o banco existente para garantir reset completo
+        var dbPath = connectionString.Replace("Data Source=", "");
+        if (File.Exists(dbPath))
         {
-            scriptPath = "Scripts/fees-sqlite.sql";
+            File.Delete(dbPath);
+            Console.WriteLine($"Banco fees existente removido: {dbPath}");
         }
 
-        if (File.Exists(scriptPath))
-        {
-            var script = await File.ReadAllTextAsync(scriptPath);
-            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
-            await connection.OpenAsync();
-            
-            var command = connection.CreateCommand();
-            command.CommandText = script;
-            await command.ExecuteNonQueryAsync();
-            
-            Console.WriteLine("Fees database initialized successfully");
-        }
+        // Criar o script SQL inline
+        var createTablesScript = @"
+-- Tabela de tarifas
+CREATE TABLE IF NOT EXISTS tarifa (
+    idtarifa TEXT(37) PRIMARY KEY,
+    idcontacorrente TEXT(37) NOT NULL,
+    datamovimento TEXT(25) NOT NULL,
+    valor REAL NOT NULL
+);
+
+-- Índices para performance
+CREATE INDEX IF NOT EXISTS idx_tarifa_conta ON tarifa(idcontacorrente);
+CREATE INDEX IF NOT EXISTS idx_tarifa_data ON tarifa(datamovimento);
+";
+
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+        await connection.OpenAsync();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = createTablesScript;
+        await command.ExecuteNonQueryAsync();
+        
+        Console.WriteLine($"Fees database criado com sucesso: {dbPath}");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error initializing fees database: {ex.Message}");
+        throw;
     }
 }

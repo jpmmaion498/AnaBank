@@ -7,6 +7,25 @@ Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 se
 [![Tests](https://img.shields.io/badge/Tests-37%20Passing-green.svg)](#testes)
 [![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-orange.svg)](#arquitetura)
 
+## ?? **PARA AVALIAÇÃO - EXECUÇÃO RÁPIDA**
+
+### **Pré-requisito único:**
+- ? **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
+
+### **Iniciar sistema completo:**
+```bash
+.\INICIAR-AVALIACAO.bat
+```
+
+### **Testar no Postman:**
+1. **Importe**: `AnaBank-Avaliacao-Final.postman_collection.json`
+2. **Importe**: `AnaBank-Avaliacao-Final.postman_environment.json`
+3. **Execute** a collection completa (testes automáticos)
+
+**?? Resultado esperado:** Sistema funcionando com Ana (R$ 4.494) e João (R$ 1.500)
+
+---
+
 ## Estrutura do Projeto
 
 ```
@@ -14,23 +33,19 @@ AnaBank/
 ??? src/                          # Código fonte
 ?   ??? Accounts/                 # Microsserviço de Contas
 ?   ??? Transfers/                # Microsserviço de Transferências  
-?   ??? Fees/                     # Worker de Tarifas (opcional)
+?   ??? Fees/                     # Worker de Tarifas
 ?   ??? BuildingBlocks/           # Componentes compartilhados
 ??? tests/                        # Testes automatizados
 ?   ??? AnaBank.Accounts.UnitTests/
 ?   ??? AnaBank.Transfers.UnitTests/
 ?   ??? AnaBank.Accounts.IntegrationTests/
 ??? deploy/                       # Docker e deployment
-?   ??? docker-compose.yml       # Produção
-?   ??? docker-compose.dev.yml   # Desenvolvimento
+?   ??? docker-compose.yml        # Produção
+?   ??? docker-compose.dev.yml    # Desenvolvimento
 ?   ??? nginx/                    # Load balancer
 ??? config/                       # Configurações
 ?   ??? Scripts/                  # Scripts SQL
 ?   ??? *.md                      # Documentação de configuração
-??? tools/                        # Ferramentas e scripts
-?   ??? Makefile                  # Comandos de automação
-?   ??? start.sh/start.bat        # Scripts de inicialização
-?   ??? stop.sh                   # Scripts de parada
 ??? docs/                         # Documentação
     ??? ARCHITECTURE.md           # Arquitetura detalhada
     ??? API_GUIDE.md              # Guia das APIs
@@ -39,8 +54,8 @@ AnaBank/
 ## Arquitetura
 
 ### Microsserviços
-- **Accounts.API** (8081): Gestão de contas correntes, movimentações e saldo
-- **Transfers.API** (8082): Transferências entre contas
+- **Accounts.API** (porta 8091): Gestão de contas correntes, movimentações e saldo
+- **Transfers.API** (porta 8092): Transferências entre contas
 - **Fees.Worker**: Processamento de tarifas via BackgroundService
 
 ### Tecnologias
@@ -50,24 +65,24 @@ AnaBank/
 - **JWT** - Autenticação e autorização
 - **FluentValidation** - Validações robustas
 - **Docker** - Containerização
+- **Kafka** - Mensageria assíncrona
 - **Nginx** - Load balancer/proxy
-- **Redis** - Cache (diferencial)
 
 ## Quick Start
 
-### Opção 1: Scripts Automatizados (Recomendado)
+### Opção 1: Sistema de Avaliação (Recomendado)
 
 ```bash
-# Linux/Mac
-./tools/start.sh
-
-# Windows
-tools\start.bat
+# Execute o script único
+.\INICIAR-AVALIACAO.bat
 ```
 
 ### Opção 2: Docker Compose
 
 ```bash
+# Sistema de avaliação
+docker-compose -f docker-compose.avaliacao.yml up -d
+
 # Desenvolvimento
 cd deploy
 docker-compose -f docker-compose.dev.yml up -d
@@ -82,21 +97,20 @@ docker-compose up -d
 ```bash
 # Terminal 1 - Accounts API
 cd src/Accounts/AnaBank.Accounts.API
-dotnet run
+dotnet run --urls="http://localhost:8091"
 
 # Terminal 2 - Transfers API  
 cd src/Transfers/AnaBank.Transfers.API
-dotnet run
+dotnet run --urls="http://localhost:8092"
 ```
 
 ## URLs dos Serviços
 
 | Serviço | URL | Swagger |
 |---------|-----|---------|
-| **Accounts API** | http://localhost:8081 | http://localhost:8081 |
-| **Transfers API** | http://localhost:8082 | http://localhost:8082 |
+| **Accounts API** | http://localhost:8091 | http://localhost:8091/swagger |
+| **Transfers API** | http://localhost:8092 | http://localhost:8092/swagger |
 | **Nginx (Prod)** | http://localhost | - |
-| **Redis** | localhost:6379 | - |
 
 ## APIs Principais
 
@@ -121,17 +135,11 @@ dotnet run
 ## Testes
 
 ```bash
-# Todos os testes unitários
-make test-unit
+# Executar todos os testes
+dotnet test
 
-# Testes de integração
-make test-integration
-
-# Todos os testes
-make test
-
-# Cobertura de código
-make test-coverage
+# Com cobertura
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 **Status atual**: ? **37 testes unitários** passando
@@ -142,65 +150,51 @@ make test-coverage
 - ? **Validação de CPF** com algoritmo padrão brasileiro
 - ? **Hash de senhas** com salt único
 - ? **Idempotência** via header `Idempotency-Key`
-- ? **Rate limiting** implementado
 - ? **CORS** configurado
 
 ## Exemplo de Uso
 
 ```bash
 # 1. Cadastrar conta
-curl -X POST http://localhost:8081/api/accounts \
+curl -X POST http://localhost:8091/api/accounts \
   -H "Content-Type: application/json" \
   -d '{"name":"Ana Silva","cpf":"12345678909","password":"123456"}'
 
 # 2. Login (recebe JWT)
-curl -X POST http://localhost:8081/api/accounts/login \
+curl -X POST http://localhost:8091/api/accounts/login \
   -H "Content-Type: application/json" \
   -d '{"cpfOrNumber":"12345678909","password":"123456"}'
 
 # 3. Depositar
-curl -X POST http://localhost:8081/api/accounts/movements \
+curl -X POST http://localhost:8091/api/accounts/movements \
   -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"type":"C","value":1000.00}'
 
 # 4. Transferir
-curl -X POST http://localhost:8082/api/transfers \
+curl -X POST http://localhost:8092/api/transfers \
   -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"destinationAccountNumber":"87654321","value":100.00}'
-```
-
-## Comandos Úteis
-
-```bash
-# Makefile helpers (dentro de tools/)
-make help           # Ver todos os comandos
-make build          # Compilar solução
-make test           # Executar testes
-make docker-up      # Subir containers
-make docker-down    # Parar containers
-make health         # Verificar saúde dos serviços
-make logs-accounts  # Logs da API Accounts
-make clean          # Limpar builds
 ```
 
 ## Monitoramento
 
 ### Health Checks
 ```bash
-curl http://localhost:8081/health  # Accounts
-curl http://localhost:8082/health  # Transfers
+curl http://localhost:8091/health  # Accounts
+curl http://localhost:8092/health  # Transfers
 ```
 
-### Logs
+### Logs via Docker
 ```bash
-# Via Docker
-make logs-accounts
-make logs-transfers
+# Ver logs do sistema de avaliação
+docker-compose -f docker-compose.avaliacao.yml logs -f
 
-# Status dos containers
-make ps
+# Logs específicos
+docker-compose -f docker-compose.avaliacao.yml logs -f accounts-api
+docker-compose -f docker-compose.avaliacao.yml logs -f transfers-api
+docker-compose -f docker-compose.avaliacao.yml logs -f fees-worker
 ```
 
 ## Características Técnicas
@@ -215,11 +209,10 @@ make ps
 - **SQLite** - Banco de dados conforme solicitado
 
 ### Diferenciais Implementados
-- **Redis Cache** - Performance otimizada
+- **Kafka** - Mensageria assíncrona para tarifas
 - **Nginx Load Balancer** - Escalabilidade
 - **BackgroundService** - Processamento assíncrono
 - **Health Checks** - Monitoramento
-- **Rate Limiting** - Proteção contra abuso
 - **Structured Logging** - Observabilidade
 
 ## Tipos de Erro Padronizados
@@ -239,7 +232,8 @@ make ps
 - [Arquitetura Detalhada](docs/ARCHITECTURE.md)
 - [Guia de APIs](docs/API_GUIDE.md)
 - [Deploy com Docker](deploy/)
-- [Scripts e Ferramentas](tools/)
+- [Avaliação Final](AVALIACAO-FINAL.md)
+- [Guia Rápido](GUIA-RAPIDO-AVALIACAO.md)
 
 ## Contribuição
 

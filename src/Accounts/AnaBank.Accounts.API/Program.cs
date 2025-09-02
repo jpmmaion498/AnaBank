@@ -7,6 +7,8 @@ using AnaBank.Accounts.Infrastructure;
 using AnaBank.Accounts.Application.Behaviors;
 using AnaBank.BuildingBlocks.Web.Authentication;
 using AnaBank.BuildingBlocks.Web.Middleware;
+using AnaBank.Accounts.API.Services;
+using AnaBank.Accounts.API.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,18 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     "Data Source=anabank_accounts.db";
 
 builder.Services.AddAccountsInfrastructure(connectionString);
+
+// Kafka Fee Consumer Service (opcional - apenas se Kafka estiver configurado)
+if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Kafka")))
+{
+    builder.Services.AddScoped<IFeeConsumerService, FeeConsumerService>();
+    builder.Services.AddHostedService<FeeProcessingBackgroundService>();
+    Console.WriteLine("? Kafka Fee Consumer Service registered");
+}
+else
+{
+    Console.WriteLine("?? Kafka not configured - Fee Consumer Service disabled");
+}
 
 // MediatR
 builder.Services.AddMediatR(cfg => {
@@ -51,7 +65,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para gerenciamento de contas correntes do AnaBank"
     });
 
-    // Configuração JWT no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -76,7 +89,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Adicionar header de idempotência
     c.AddSecurityDefinition("Idempotency", new OpenApiSecurityScheme
     {
         Description = "Idempotency key for safe retries. Example: \"Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000\"",
@@ -85,7 +97,6 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey
     });
 
-    // Incluir comentários XML se disponível
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -126,15 +137,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Cache Redis (diferencial) - removido temporariamente
-// if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Redis")))
-// {
-//     builder.Services.AddStackExchangeRedisCache(options =>
-//     {
-//         options.Configuration = builder.Configuration.GetConnectionString("Redis");
-//     });
-// }
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -144,7 +146,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AnaBank Accounts API v1");
-        c.RoutePrefix = string.Empty; // Swagger na raiz
+        //c.RoutePrefix = string.Empty; // Swagger na raiz
     });
 }
 
@@ -190,28 +192,63 @@ static async Task InitializeDatabase(string connectionString)
 {
     try
     {
-        var scriptPath = Path.Combine(AppContext.BaseDirectory, "../../../Scripts/accounts-sqlite.sql");
-        if (!File.Exists(scriptPath))
+        // SEMPRE remover o banco existente para garantir reset completo
+        var dbPath = connectionString.Replace("Data Source=", "");
+        if (File.Exists(dbPath))
         {
-            scriptPath = "Scripts/accounts-sqlite.sql";
+            File.Delete(dbPath);
+            Console.WriteLine($"Banco existente removido: {dbPath}");
         }
 
-        if (File.Exists(scriptPath))
-        {
-            var script = await File.ReadAllTextAsync(scriptPath);
-            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
-            await connection.OpenAsync();
-            
-            var command = connection.CreateCommand();
-            command.CommandText = script;
-            await command.ExecuteNonQueryAsync();
-            
-            Console.WriteLine("Database initialized successfully");
-        }
+        // Criar o script SQL inline para garantir que sempre funcione
+        var createTablesScript = @"
+CREATE TABLE IF NOT EXISTS contacorrente (
+    idcontacorrente TEXT(37) PRIMARY KEY,
+    numero INTEGER(10) NOT NULL UNIQUE,
+    nome TEXT(100) NOT NULL,
+    cpf TEXT(11) NOT NULL UNIQUE,
+    ativo INTEGER(1) NOT NULL default 1,
+    senha TEXT(100) NOT NULL,
+    salt TEXT(100) NOT NULL,
+    data_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CHECK (ativo in (0,1))
+);
+
+CREATE TABLE IF NOT EXISTS movimento (
+    idmovimento TEXT(37) PRIMARY KEY,
+    idcontacorrente TEXT(37) NOT NULL,
+    datamovimento TEXT(25) NOT NULL,
+    tipomovimento TEXT(1) NOT NULL,
+    valor REAL NOT NULL,
+    CHECK (tipomovimento in ('C','D')),
+    FOREIGN KEY(idcontacorrente) REFERENCES contacorrente(idcontacorrente)
+);
+
+CREATE TABLE IF NOT EXISTS idempotencia (
+    chave_idempotencia TEXT(37) PRIMARY KEY,
+    requisicao TEXT(1000),
+    resultado TEXT(1000)
+);
+
+CREATE INDEX IF NOT EXISTS idx_movimento_conta ON movimento(idcontacorrente);
+CREATE INDEX IF NOT EXISTS idx_movimento_data ON movimento(datamovimento);
+CREATE INDEX IF NOT EXISTS idx_contacorrente_cpf ON contacorrente(cpf);
+CREATE INDEX IF NOT EXISTS idx_contacorrente_numero ON contacorrente(numero);
+";
+
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+        await connection.OpenAsync();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = createTablesScript;
+        await command.ExecuteNonQueryAsync();
+        
+        Console.WriteLine($"Accounts database criado com sucesso: {dbPath}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error initializing database: {ex.Message}");
+        Console.WriteLine($"Error initializing accounts database: {ex.Message}");
+        throw; // Re-throw para facilitar debug
     }
 }
 

@@ -9,7 +9,6 @@ using AnaBank.BuildingBlocks.Web.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração JWT
 var jwtSettings = new JwtSettings
 {
     SecretKey = builder.Configuration["Jwt:SecretKey"] ?? "sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres",
@@ -21,25 +20,20 @@ var jwtSettings = new JwtSettings
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
     "Data Source=anabank_transfers.db";
 
 builder.Services.AddTransfersInfrastructure(connectionString);
 
-// MediatR
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(AnaBank.Transfers.Application.Commands.MakeTransfer.MakeTransferCommand).Assembly);
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-// FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(AnaBank.Transfers.Application.Commands.MakeTransfer.MakeTransferValidator).Assembly);
 
-// Controllers
 builder.Services.AddControllers();
 
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -50,7 +44,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para realização de transferências do AnaBank"
     });
 
-    // Configuração JWT no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -75,7 +68,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Incluir comentários XML se disponível
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -84,11 +76,10 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // Para desenvolvimento
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -105,7 +96,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -118,20 +108,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AnaBank Transfers API v1");
-        c.RoutePrefix = string.Empty; // Swagger na raiz
     });
 }
 
 app.UseCors("AllowAll");
 
-// Middleware para tratamento global de exceções
 app.UseExceptionHandler(appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -156,10 +143,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Health check
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
-// Inicializar banco de dados
 await InitializeDatabase(connectionString);
 
 app.Run();
@@ -168,30 +153,47 @@ static async Task InitializeDatabase(string connectionString)
 {
     try
     {
-        var scriptPath = Path.Combine(AppContext.BaseDirectory, "../../../Scripts/transfers-sqlite.sql");
-        if (!File.Exists(scriptPath))
+        var dbPath = connectionString.Replace("Data Source=", "");
+        if (File.Exists(dbPath))
         {
-            scriptPath = "Scripts/transfers-sqlite.sql";
+            File.Delete(dbPath);
+            Console.WriteLine($"Banco transfers existente removido: {dbPath}");
         }
 
-        if (File.Exists(scriptPath))
-        {
-            var script = await File.ReadAllTextAsync(scriptPath);
-            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
-            await connection.OpenAsync();
-            
-            var command = connection.CreateCommand();
-            command.CommandText = script;
-            await command.ExecuteNonQueryAsync();
-            
-            Console.WriteLine("Transfers database initialized successfully");
-        }
+        var createTablesScript = @"
+CREATE TABLE IF NOT EXISTS transferencia (
+    idtransferencia TEXT(37) PRIMARY KEY,
+    idcontacorrente_origem TEXT(37) NOT NULL,
+    idcontacorrente_destino TEXT(37) NOT NULL,
+    datamovimento TEXT(25) NOT NULL,
+    valor REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS idempotencia (
+    chave_idempotencia TEXT(37) PRIMARY KEY,
+    requisicao TEXT(1000),
+    resultado TEXT(1000)
+);
+
+CREATE INDEX IF NOT EXISTS idx_transferencia_origem ON transferencia(idcontacorrente_origem);
+CREATE INDEX IF NOT EXISTS idx_transferencia_destino ON transferencia(idcontacorrente_destino);
+CREATE INDEX IF NOT EXISTS idx_transferencia_data ON transferencia(datamovimento);
+";
+
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+        await connection.OpenAsync();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = createTablesScript;
+        await command.ExecuteNonQueryAsync();
+        
+        Console.WriteLine($"Transfers database criado com sucesso: {dbPath}");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error initializing transfers database: {ex.Message}");
+        throw;
     }
 }
 
-// Tornar a classe Program acessível para testes
 public partial class Program { }

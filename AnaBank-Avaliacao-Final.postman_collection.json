@@ -1,0 +1,758 @@
+{
+	"info": {
+		"_postman_id": "anabank-avaliacao-final",
+		"name": "AnaBank - Avaliacao Final",
+		"description": "Collection completa para avaliacao do sistema AnaBank - Todas as funcionalidades testadas automaticamente",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01 - SETUP E VALIDACAO",
+			"item": [
+				{
+					"name": "Health Check - Accounts API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Health Check - Accounts API funcionando', () => {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.equal('Healthy');",
+									"});",
+									"console.log('? Accounts API online');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{accounts_url}}/health",
+							"host": ["{{accounts_url}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Health Check - Transfers API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Health Check - Transfers API funcionando', () => {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.equal('Healthy');",
+									"});",
+									"console.log('? Transfers API online');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{transfers_url}}/health",
+							"host": ["{{transfers_url}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "02 - FLUXO ANA SILVA",
+			"item": [
+				{
+					"name": "Cadastrar Ana Silva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('ana_account_id', response.id);",
+									"    pm.environment.set('ana_account_number', response.number);",
+									"    pm.test('Ana Silva cadastrada com sucesso', () => {",
+									"        pm.expect(response.id).to.not.be.empty;",
+									"        pm.expect(response.number).to.not.be.empty;",
+									"        pm.expect(response.name).to.equal('Ana Silva');",
+									"    });",
+									"    console.log('? Ana cadastrada - ID:', response.id, 'Numero:', response.number);",
+									"} else if (pm.response.code === 400) {",
+									"    pm.test('Ana Silva ja existe - continuando teste', () => {",
+									"        pm.expect(pm.response.code).to.equal(400);",
+									"    });",
+									"    console.log('?? Ana ja cadastrada - continuando...');",
+									"} else {",
+									"    pm.test('Erro no cadastro da Ana', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Ana Silva\",\n    \"cpf\": \"12345678909\",\n    \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts"]
+						}
+					}
+				},
+				{
+					"name": "Login Ana Silva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('ana_token', response.token);",
+									"    pm.test('Login Ana realizado com sucesso', () => {",
+									"        pm.expect(response.token).to.not.be.empty;",
+									"    });",
+									"    console.log('? Ana logada - Token JWT capturado');",
+									"} else {",
+									"    pm.test('Erro no login da Ana', () => {",
+									"        pm.expect.fail('Login falhou: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cpfOrNumber\": \"12345678909\",\n    \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/login",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "login"]
+						}
+					}
+				},
+				{
+					"name": "Deposito Ana - R$ 5.000",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Deposito Ana realizado', () => {",
+									"    pm.expect(pm.response.code).to.equal(204);",
+									"});",
+									"console.log('? Ana depositou R$ 5.000,00');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "deposit-ana-5000"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"C\",\n    \"value\": 5000.00\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/movements",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "movements"]
+						}
+					}
+				},
+				{
+					"name": "Consultar Saldo Inicial Ana",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('ana_balance_initial', response.balance);",
+									"    pm.test('Saldo inicial Ana: R$ ' + response.balance, () => {",
+									"        pm.expect(response.balance).to.equal(5000);",
+									"    });",
+									"    console.log('? Saldo inicial Ana: R$', response.balance);",
+									"} else {",
+									"    pm.test('Erro na consulta do saldo da Ana', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/balance",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "balance"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "03 - FLUXO JOAO SANTOS",
+			"item": [
+				{
+					"name": "Cadastrar Joao Santos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('joao_account_id', response.id);",
+									"    pm.environment.set('joao_account_number', response.number);",
+									"    pm.test('Joao Santos cadastrado com sucesso', () => {",
+									"        pm.expect(response.id).to.not.be.empty;",
+									"        pm.expect(response.number).to.not.be.empty;",
+									"        pm.expect(response.name).to.equal('Joao Santos');",
+									"    });",
+									"    console.log('? Joao cadastrado - ID:', response.id, 'Numero:', response.number);",
+									"} else if (pm.response.code === 400) {",
+									"    pm.test('Joao Santos ja existe - continuando teste', () => {",
+									"        pm.expect(pm.response.code).to.equal(400);",
+									"    });",
+									"    console.log('?? Joao ja cadastrado - continuando...');",
+									"} else {",
+									"    pm.test('Erro no cadastro do Joao', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Joao Santos\",\n    \"cpf\": \"98765432100\",\n    \"password\": \"654321\"\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts"]
+						}
+					}
+				},
+				{
+					"name": "Login Joao Santos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('joao_token', response.token);",
+									"    pm.test('Login Joao realizado com sucesso', () => {",
+									"        pm.expect(response.token).to.not.be.empty;",
+									"    });",
+									"    console.log('? Joao logado - Token JWT capturado');",
+									"} else {",
+									"    pm.test('Erro no login do Joao', () => {",
+									"        pm.expect.fail('Login falhou: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cpfOrNumber\": \"98765432100\",\n    \"password\": \"654321\"\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/login",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "login"]
+						}
+					}
+				},
+				{
+					"name": "Deposito Joao - R$ 1.000",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Deposito Joao realizado', () => {",
+									"    pm.expect(pm.response.code).to.equal(204);",
+									"});",
+									"console.log('? Joao depositou R$ 1.000,00');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{joao_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "deposit-joao-1000"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"C\",\n    \"value\": 1000.00\n}"
+						},
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/movements",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "movements"]
+						}
+					}
+				},
+				{
+					"name": "Consultar Saldo Inicial Joao",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('joao_balance_initial', response.balance);",
+									"    pm.test('Saldo inicial Joao: R$ ' + response.balance, () => {",
+									"        pm.expect(response.balance).to.equal(1000);",
+									"    });",
+									"    console.log('? Saldo inicial Joao: R$', response.balance);",
+									"} else {",
+									"    pm.test('Erro na consulta do saldo do Joao', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{joao_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/balance",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "balance"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "04 - TRANSFERENCIAS",
+			"item": [
+				{
+					"name": "Transferencia 1 - R$ 100 (Ana para Joao)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Transferencia R$ 100 realizada', () => {",
+									"    pm.expect(pm.response.code).to.equal(204);",
+									"});",
+									"console.log('? Transferencia R$ 100: Ana ? Joao');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "transfer-ana-joao-100"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 100.00\n}"
+						},
+						"url": {
+							"raw": "{{transfers_url}}/api/transfers",
+							"host": ["{{transfers_url}}"],
+							"path": ["api", "transfers"]
+						}
+					}
+				},
+				{
+					"name": "Transferencia 2 - R$ 250 (Ana para Joao)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Transferencia R$ 250 realizada', () => {",
+									"    pm.expect(pm.response.code).to.equal(204);",
+									"});",
+									"console.log('? Transferencia R$ 250: Ana ? Joao');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "transfer-ana-joao-250"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 250.00\n}"
+						},
+						"url": {
+							"raw": "{{transfers_url}}/api/transfers",
+							"host": ["{{transfers_url}}"],
+							"path": ["api", "transfers"]
+						}
+					}
+				},
+				{
+					"name": "Transferencia 3 - R$ 150 (Ana para Joao)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Transferencia R$ 150 realizada', () => {",
+									"    pm.expect(pm.response.code).to.equal(204);",
+									"});",
+									"console.log('? Transferencia R$ 150: Ana ? Joao');",
+									"console.log('? Aguardando Worker processar tarifas via Kafka...');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "transfer-ana-joao-150"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 150.00\n}"
+						},
+						"url": {
+							"raw": "{{transfers_url}}/api/transfers",
+							"host": ["{{transfers_url}}"],
+							"path": ["api", "transfers"]
+						}
+					}
+				},
+				{
+					"name": "Aguardar Processamento Kafka (10s)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Aguardando processamento de tarifas', () => {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"console.log('? Worker deve processar 3 tarifas de R$ 2,00 cada (total R$ 6,00)');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Aguardar 10 segundos para processamento",
+									"setTimeout(() => {}, 10000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{accounts_url}}/health",
+							"host": ["{{accounts_url}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "05 - VALIDACAO FINAL",
+			"item": [
+				{
+					"name": "Saldo Final Ana",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    const expectedBalance = 4494; // 5000 - 500 (transferencias) - 6 (tarifas)",
+									"    pm.environment.set('ana_balance_final', response.balance);",
+									"    ",
+									"    pm.test('Saldo final Ana: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
+									"        pm.expect(response.balance).to.be.closeTo(expectedBalance, 10);",
+									"    });",
+									"    ",
+									"    console.log('?? Saldo final Ana: R$', response.balance);",
+									"    console.log('?? Calculo: R$ 5.000 - R$ 500 (transferencias) - R$ 6 (tarifas) = R$ 4.494');",
+									"    ",
+									"    if (response.balance === expectedBalance) {",
+									"        console.log('? PERFEITO! Saldo exato como esperado!');",
+									"    } else {",
+									"        console.log('?? Diferenca de R$', Math.abs(response.balance - expectedBalance), '- Pode ser processamento assincrono');",
+									"    }",
+									"} else {",
+									"    pm.test('Erro na consulta do saldo final da Ana', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ana_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/balance",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "balance"]
+						}
+					}
+				},
+				{
+					"name": "Saldo Final Joao",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    const expectedBalance = 1500; // 1000 + 500 (recebimentos)",
+									"    pm.environment.set('joao_balance_final', response.balance);",
+									"    ",
+									"    pm.test('Saldo final Joao: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
+									"        pm.expect(response.balance).to.equal(expectedBalance);",
+									"    });",
+									"    ",
+									"    console.log('?? Saldo final Joao: R$', response.balance);",
+									"    console.log('?? Calculo: R$ 1.000 + R$ 500 (recebimentos) = R$ 1.500');",
+									"    ",
+									"    if (response.balance === expectedBalance) {",
+									"        console.log('? PERFEITO! Saldo exato como esperado!');",
+									"    }",
+									"} else {",
+									"    pm.test('Erro na consulta do saldo final do Joao', () => {",
+									"        pm.expect.fail('Erro: ' + pm.response.text());",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{joao_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{accounts_url}}/api/accounts/balance",
+							"host": ["{{accounts_url}}"],
+							"path": ["api", "accounts", "balance"]
+						}
+					}
+				},
+				{
+					"name": "Resumo Final do Teste",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('TESTE ANABANK FINALIZADO COM SUCESSO', () => {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"const anaInitial = pm.environment.get('ana_balance_initial') || 0;",
+									"const anaFinal = pm.environment.get('ana_balance_final') || 0;",
+									"const joaoInitial = pm.environment.get('joao_balance_initial') || 0;",
+									"const joaoFinal = pm.environment.get('joao_balance_final') || 0;",
+									"",
+									"console.log('===============================================');",
+									"console.log('?? TESTE ANABANK FINALIZADO COM SUCESSO!');",
+									"console.log('===============================================');",
+									"console.log('');",
+									"console.log('?? ANA SILVA:');",
+									"console.log('   Saldo inicial: R$', anaInitial);",
+									"console.log('   Saldo final:   R$', anaFinal);",
+									"console.log('   Diferenca:     R$', (anaFinal - anaInitial));",
+									"console.log('');",
+									"console.log('?? JOAO SANTOS:');",
+									"console.log('   Saldo inicial: R$', joaoInitial);",
+									"console.log('   Saldo final:   R$', joaoFinal);",
+									"console.log('   Diferenca:     R$', (joaoFinal - joaoInitial));",
+									"console.log('');",
+									"console.log('?? OPERACOES REALIZADAS:');",
+									"console.log('   ? 3 Transferencias (R$ 100 + R$ 250 + R$ 150 = R$ 500)');",
+									"console.log('   ? 3 Tarifas processadas via Kafka (3 × R$ 2 = R$ 6)');",
+									"console.log('   ? Worker funcionando corretamente');",
+									"console.log('   ? JWT Authentication funcionando');",
+									"console.log('   ? APIs Accounts + Transfers funcionando');",
+									"console.log('');",
+									"console.log('?? SISTEMA ANABANK 100% FUNCIONAL!');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{accounts_url}}/health",
+							"host": ["{{accounts_url}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

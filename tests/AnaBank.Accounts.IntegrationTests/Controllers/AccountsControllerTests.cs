@@ -121,7 +121,7 @@ public class AccountsControllerTests : IClassFixture<AccountsApiWebApplicationFa
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var balanceContent = await response.Content.ReadAsStringAsync();
-        balanceContent.Should().Contain("0.00"); // Saldo inicial deve ser zero
+        balanceContent.Should().Contain("\"balance\":0"); // Saldo inicial deve ser zero
     }
 
     [Fact]

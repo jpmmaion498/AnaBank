@@ -1,9 +1,9 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using AnaBank.Accounts.Domain.Entities;
 using AnaBank.Accounts.Domain.Interfaces;
 using AnaBank.Accounts.Domain.ValueObjects;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace AnaBank.Accounts.Application.Commands.RegisterAccount;
 
@@ -11,40 +11,53 @@ public class RegisterAccountHandler : IRequestHandler<RegisterAccountCommand, Re
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ILogger<RegisterAccountHandler> _logger;
 
-    public RegisterAccountHandler(IAccountRepository accountRepository, IPasswordHasher passwordHasher)
+    public RegisterAccountHandler(
+        IAccountRepository accountRepository, 
+        IPasswordHasher passwordHasher,
+        ILogger<RegisterAccountHandler> logger)
     {
         _accountRepository = accountRepository ?? throw new ArgumentNullException(nameof(accountRepository));
         _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<RegisterAccountResult> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
+            _logger.LogInformation("Iniciando registro de conta para CPF: {Cpf}", request.Cpf);
+
             var cpf = new Cpf(request.Cpf);
 
-            // Verifica se CPF já existe
             var existingAccount = await _accountRepository.GetByCpfAsync(cpf);
             if (existingAccount != null)
+            {
+                _logger.LogWarning("CPF já cadastrado: {Cpf}", cpf.Value);
                 throw new InvalidOperationException("CPF já cadastrado");
+            }
 
-            // Gera número da conta único
             var accountNumber = await GenerateUniqueAccountNumber();
-
-            // Gera salt e hash da senha
             var salt = GenerateSalt();
             var passwordHash = _passwordHasher.HashPassword(request.Password, salt);
 
-            // Cria a conta
             var account = new CurrentAccount(request.Name, cpf, accountNumber, passwordHash, salt);
             var id = await _accountRepository.CreateAsync(account);
+            
+            _logger.LogInformation("Conta criada com sucesso - ID: {Id}, Número: {Number}", id, accountNumber);
 
             return new RegisterAccountResult(id, accountNumber.ToString());
         }
         catch (ArgumentException ex) when (ex.Message.Contains("CPF inválido"))
         {
+            _logger.LogError(ex, "CPF inválido fornecido: {Cpf}", request.Cpf);
             throw new InvalidOperationException("INVALID_DOCUMENT");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao registrar conta para CPF: {Cpf}", request.Cpf);
+            throw;
         }
     }
 
@@ -55,7 +68,7 @@ public class RegisterAccountHandler : IRequestHandler<RegisterAccountCommand, Re
         
         do
         {
-            accountNumber = random.Next(10000000, 99999999); // 8 dígitos
+            accountNumber = random.Next(10000000, 99999999);
         }
         while (await _accountRepository.GetByNumberAsync(accountNumber) != null);
         

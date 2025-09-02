@@ -1,6 +1,7 @@
 using AnaBank.Transfers.Domain.Interfaces;
 using System.Text.Json;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace AnaBank.Transfers.Infrastructure.Clients;
 
@@ -9,10 +10,10 @@ public class AccountsClient : IAccountsClient
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
 
-    public AccountsClient(HttpClient httpClient)
+    public AccountsClient(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _baseUrl = "http://localhost:8081"; // Configurar via appsettings
+        _baseUrl = configuration["AccountsApi:BaseUrl"] ?? "https://localhost:7001";
     }
 
     public async Task DebitAsync(string accountId, decimal value, string authToken)
@@ -40,28 +41,36 @@ public class AccountsClient : IAccountsClient
 
     private async Task MakeMovementAsync(object request, string authToken)
     {
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
-
-        var json = JsonSerializer.Serialize(request);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync($"{_baseUrl}/api/accounts/movements", content);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            
-            // Tentar extrair o tipo de erro do ProblemDetails
-            try
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", authToken);
+            _httpClient.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
+
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/accounts/movements", content);
+
+            if (!response.IsSuccessStatusCode)
             {
-                var problemDetails = JsonSerializer.Deserialize<ProblemDetailsResponse>(errorContent);
-                throw new InvalidOperationException(problemDetails?.Type ?? "API_ERROR");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                
+                // Tentar extrair o tipo de erro do ProblemDetails
+                try
+                {
+                    var problemDetails = JsonSerializer.Deserialize<ProblemDetailsResponse>(errorContent);
+                    throw new InvalidOperationException(problemDetails?.Type ?? "API_ERROR");
+                }
+                catch (JsonException)
+                {
+                    throw new InvalidOperationException($"API_ERROR: {response.StatusCode} - {errorContent}");
+                }
             }
-            catch (JsonException)
-            {
-                throw new InvalidOperationException($"API_ERROR: {response.StatusCode}");
-            }
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException($"NETWORK_ERROR: {ex.Message}");
         }
     }
 

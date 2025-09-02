@@ -1,0 +1,146 @@
+services:
+  # Zookeeper para Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: anabank-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - anabank-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: anabank-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    networks:
+      - anabank-network
+
+  # Kafka Init - Criar topicos
+  kafka-init:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - kafka
+    entrypoint: ['/bin/sh', '-c']
+    command: |
+      "
+      kafka-topics --bootstrap-server kafka:29092 --list
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic transfer-completed --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic fee-completed --replication-factor 1 --partitions 1
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    networks:
+      - anabank-network
+
+  # Accounts API
+  accounts-api:
+    build:
+      context: .
+      dockerfile: src/Accounts/AnaBank.Accounts.API/Dockerfile
+    container_name: anabank-accounts
+    ports:
+      - "8091:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_accounts.db
+      - ConnectionStrings__Kafka=kafka:29092
+      - Jwt__SecretKey=chave-de-desenvolvimento-nao-usar-em-producao-123456789
+      - Jwt__Issuer=AnaBank
+      - Jwt__Audience=AnaBank.APIs
+      - Jwt__ExpirationHours=8
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+    networks:
+      - anabank-network
+    restart: unless-stopped
+
+  # Transfers API
+  transfers-api:
+    build:
+      context: .
+      dockerfile: src/Transfers/AnaBank.Transfers.API/Dockerfile
+    container_name: anabank-transfers
+    ports:
+      - "8092:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_transfers.db
+      - ConnectionStrings__Kafka=kafka:29092
+      - AccountsApi__BaseUrl=http://accounts-api:8080
+      - Jwt__SecretKey=chave-de-desenvolvimento-nao-usar-em-producao-123456789
+      - Jwt__Issuer=AnaBank
+      - Jwt__Audience=AnaBank.APIs
+      - Jwt__ExpirationHours=8
+    volumes:
+      - ./data:/data
+    depends_on:
+      - accounts-api
+      - kafka
+    networks:
+      - anabank-network
+    restart: unless-stopped
+
+  # Fees Worker
+  fees-worker:
+    build:
+      context: .
+      dockerfile: src/Fees/AnaBank.Fees.Worker/Dockerfile
+    container_name: anabank-fees
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/anabank_fees.db
+      - ConnectionStrings__Kafka=kafka:29092
+      - FeeSettings__TransferFeeAmount=2.00
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+      - accounts-api
+    networks:
+      - anabank-network
+    restart: unless-stopped
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: anabank-nginx
+    ports:
+      - "8090:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - accounts-api
+      - transfers-api
+    networks:
+      - anabank-network
+    restart: unless-stopped
+
+networks:
+  anabank-network:
+    driver: bridge
+
+volumes:
+  kafka-data:
+  zookeeper-data:

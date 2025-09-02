@@ -190,11 +190,29 @@ public class AccountsController : ControllerBase
 
     private string GetCurrentAccountId()
     {
-        var subClaim = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(subClaim))
-            throw new UnauthorizedAccessException("Token inválido");
-        
-        return subClaim;
+        try
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+            {
+                throw new UnauthorizedAccessException("Usuário não autenticado");
+            }
+
+            var accountId = User.FindFirst("sub")?.Value ??
+                           User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
+                           User.FindFirst("accountId")?.Value;
+            
+            if (string.IsNullOrEmpty(accountId))
+            {
+                var claims = User.Claims.ToList();
+                throw new UnauthorizedAccessException($"Token inválido - nenhum claim de identificação encontrado. Claims disponíveis: {string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}"))}");
+            }
+            
+            return accountId;
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException($"Token inválido: {ex.Message}");
+        }
     }
 
     private Microsoft.AspNetCore.Mvc.ProblemDetails CreateValidationProblem(string type, string title, string detail)

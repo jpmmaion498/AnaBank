@@ -3,8 +3,8 @@
 ## Visão Geral
 
 O AnaBank expõe duas APIs principais:
-- **Accounts API** (porta 8081): Gestão de contas e movimentações
-- **Transfers API** (porta 8082): Transferências entre contas
+- **Accounts API** (porta 8091): Gestão de contas e movimentações
+- **Transfers API** (porta 8092): Transferências entre contas
 
 ## Autenticação
 
@@ -16,7 +16,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## Accounts API
 
-### Base URL: `http://localhost:8081/api/accounts`
+### Base URL: `http://localhost:8091/api/accounts`
 
 ---
 
@@ -171,7 +171,7 @@ Content-Type: application/json
 
 ## Transfers API
 
-### Base URL: `http://localhost:8082/api/transfers`
+### Base URL: `http://localhost:8092/api/transfers`
 
 ---
 
@@ -195,7 +195,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440001
 3. Credita valor na conta de destino (via Accounts API)
 4. Em caso de falha no crédito, faz estorno automático
 5. Registra transferência no banco
-6. Publica evento no Kafka (opcional - para tarifas)
+6. Publica evento no Kafka (para tarifas via Worker)
 
 **Respostas:**
 - `204 No Content`: Transferência realizada
@@ -222,15 +222,6 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 - Use UUIDs únicos
 - Permite retry seguro de operações
 - Retorna mesma resposta para chaves repetidas
-
-### Rate Limiting
-As APIs implementam rate limiting:
-
-```http
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1640995200
-```
 
 ---
 
@@ -273,51 +264,52 @@ GET /health
 
 ```bash
 # 1. Cadastrar primeira conta
-curl -X POST http://localhost:8081/api/accounts \
+curl -X POST http://localhost:8091/api/accounts \
   -H "Content-Type: application/json" \
   -d '{"name":"Ana Silva","cpf":"12345678909","password":"123456"}'
 
 # Resposta: {"id":"abc123","number":"11111111"}
 
 # 2. Cadastrar segunda conta
-curl -X POST http://localhost:8081/api/accounts \
+curl -X POST http://localhost:8091/api/accounts \
   -H "Content-Type: application/json" \
   -d '{"name":"João Santos","cpf":"98765432100","password":"654321"}'
 
 # Resposta: {"id":"def456","number":"22222222"}
 
 # 3. Login primeira conta
-curl -X POST http://localhost:8081/api/accounts/login \
+curl -X POST http://localhost:8091/api/accounts/login \
   -H "Content-Type: application/json" \
   -d '{"cpfOrNumber":"12345678909","password":"123456"}'
 
 # Resposta: {"token":"eyJhbGciOiJIUzI1NiJ9..."}
 
 # 4. Fazer depósito inicial
-curl -X POST http://localhost:8081/api/accounts/movements \
+curl -X POST http://localhost:8091/api/accounts/movements \
   -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"type":"C","value":1000.00}'
 
 # 5. Consultar saldo
-curl -X GET http://localhost:8081/api/accounts/balance \
+curl -X GET http://localhost:8091/api/accounts/balance \
   -H "Authorization: Bearer {TOKEN}"
 
 # Resposta: {"number":"11111111","name":"Ana Silva","dateTime":"...","balance":1000.00}
 
 # 6. Transferir para segunda conta
-curl -X POST http://localhost:8082/api/transfers \
+curl -X POST http://localhost:8092/api/transfers \
   -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"destinationAccountNumber":"22222222","value":100.00}'
 
 # 7. Verificar saldo após transferência
-curl -X GET http://localhost:8081/api/accounts/balance \
+curl -X GET http://localhost:8091/api/accounts/balance \
   -H "Authorization: Bearer {TOKEN}"
 
-# Resposta: {"number":"11111111","name":"Ana Silva","dateTime":"...","balance":900.00}
+# Resposta: {"number":"11111111","name":"Ana Silva","dateTime":"...","balance":898.00}
+# (1000 - 100 transferência - 2 tarifa processada pelo Worker)
 ```
 
 ---
@@ -343,6 +335,13 @@ curl -X GET http://localhost:8081/api/accounts/balance \
 - Token malformado ou inválido
 - Verificar header Authorization
 
-**Rate Limit (429)**
-- Aguardar tempo de reset
-- Implementar backoff exponencial no cliente
+---
+
+## Sistema de Avaliação
+
+Para testar o sistema completo:
+
+1. **Execute**: `.\INICIAR-AVALIACAO.bat`
+2. **URLs**: http://localhost:8091 e http://localhost:8092
+3. **Postman**: Importe collections `AnaBank-Avaliacao-Final.*`
+4. **Teste automático**: Execute collection completa- Implementar backoff exponencial no cliente

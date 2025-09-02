@@ -25,13 +25,17 @@ public class JwtTokenService : IJwtTokenService
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_settings.SecretKey);
         
+        var claims = new []
+        {
+            new Claim("sub", accountId),
+            new Claim("numero", accountNumber),
+            new Claim(ClaimTypes.NameIdentifier, accountId), // Fallback
+            new Claim("accountId", accountId) // Outro fallback
+        };
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim("sub", accountId),
-                new Claim("numero", accountNumber)
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddHours(_settings.ExpirationHours),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = _settings.Issuer,
@@ -39,7 +43,13 @@ public class JwtTokenService : IJwtTokenService
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        var tokenString = tokenHandler.WriteToken(token);
+        
+        // Debug: Log do token gerado
+        System.Diagnostics.Debug.WriteLine($"Token gerado para accountId: {accountId}");
+        System.Diagnostics.Debug.WriteLine($"Claims no token: {string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}"))}");
+        
+        return tokenString;
     }
 
     public ClaimsPrincipal? ValidateToken(string token)
@@ -62,10 +72,15 @@ public class JwtTokenService : IJwtTokenService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+            
+            // Debug: Log dos claims validados
+            System.Diagnostics.Debug.WriteLine($"Token validado com sucesso. Claims: {string.Join(", ", principal.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+            
             return principal;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Erro validando token: {ex.Message}");
             return null;
         }
     }
