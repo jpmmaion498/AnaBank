@@ -1,53 +1,53 @@
-# ?? AnaBank - Guia Rápido
+# AnaBank - Guia Rapido
 
-## ? **EXECUÇÃO EM 30 SEGUNDOS**
+## EXECUCAO EM 30 SEGUNDOS
 
-### **1. Executar Sistema**
+### 1. Executar Sistema
 ```bash
 .\INICIAR-ANABANK.bat
 ```
 *Aguarde aparecer "SISTEMA ANABANK OPERACIONAL!"*
 
-### **2. Importar no Postman**
-1. **Collection**: `AnaBank-Complete.postman_collection.json`
-2. **Environment**: `AnaBank-Production.postman_environment.json`
+### 2. Importar no Postman
+1. Collection: `AnaBank-Complete.postman_collection.json`
+2. Environment: `AnaBank-Production.postman_environment.json`
 
-### **3. Executar Testes**
-- Clique em **"Run Collection"**
-- Execute **todos os requests**
-- Observe resultados no **Console**
+### 3. Executar Testes
+- Clique em "Run Collection"
+- Execute todos os requests
+- Observe resultados no Console
 
 ---
 
-## ?? **RESULTADO ESPERADO**
+## RESULTADO ESPERADO
 
 ```
-?? TESTE ANABANK FINALIZADO COM SUCESSO!
+TESTE ANABANK FINALIZADO COM SUCESSO!
 ===============================================
 
-?? USUARIO 1:
+USUARIO 1:
    Saldo inicial: R$ 5000
    Saldo final:   R$ 4494
    Diferenca:     R$ -506
 
-?? USUARIO 2:
+USUARIO 2:
    Saldo inicial: R$ 1000
    Saldo final:   R$ 1500
    Diferenca:     R$ 500
 
-?? OPERACOES REALIZADAS:
-   ? 3 Transferencias (R$ 500 total)
-   ? 3 Tarifas via Kafka (R$ 6 total)
-   ? Worker funcionando
-   ? JWT Authentication OK
-   ? APIs funcionando
+OPERACOES REALIZADAS:
+   - 3 Transferencias (R$ 500 total)
+   - 3 Tarifas via Kafka (R$ 6 total)
+   - Worker funcionando
+   - JWT Authentication OK
+   - APIs funcionando
 
-?? SISTEMA ANABANK 100% FUNCIONAL!
+SISTEMA ANABANK 100% FUNCIONAL!
 ```
 
 ---
 
-## ?? **URLS DO SISTEMA**
+## URLS DO SISTEMA
 
 | Servico | URL | Funcao |
 |---------|-----|--------|
@@ -57,27 +57,27 @@
 
 ---
 
-## ? **FUNCIONALIDADES IMPLEMENTADAS**
+## FUNCIONALIDADES IMPLEMENTADAS
 
-### **Requisitos Principais:**
-- ? **DDD + CQRS** - Arquitetura implementada
-- ? **JWT obrigatorio** - Autenticacao em todas APIs  
-- ? **SQLite** - Banco de dados funcional
-- ? **Worker Service** - Processamento de tarifas
-- ? **Testes** - Collection automatizada
+### Requisitos Principais:
+- DDD + CQRS - Arquitetura implementada
+- JWT obrigatorio - Autenticacao em todas APIs  
+- SQLite - Banco de dados funcional
+- Worker Service - Processamento de tarifas
+- Testes - Collection automatizada
 
-### **Diferenciais:**
-- ? **Kafka** - Comunicacao assincrona
-- ? **Docker** - Containerizacao completa
-- ? **Swagger** - Documentacao interativa
-- ? **Health Checks** - Monitoramento
-- ? **Idempotencia** - Headers implementados
+### Diferenciais:
+- Kafka - Comunicacao assincrona
+- Docker - Containerizacao completa
+- Swagger - Documentacao interativa
+- Health Checks - Monitoramento
+- Idempotencia - Headers implementados
 
 ---
 
-## ?? **PROBLEMAS?**
+## PROBLEMAS?
 
-### **? APIs nao respondem**
+### APIs nao respondem
 ```bash
 # Ver logs
 docker-compose -f docker-compose.production.yml logs accounts-api
@@ -86,11 +86,11 @@ docker-compose -f docker-compose.production.yml logs accounts-api
 # Kafka pode demorar para inicializar
 ```
 
-### **? Collection falha**
+### Collection falha
 - Verificar se Environment esta selecionado
 - Aguardar APIs estarem online
 - Executar requests individualmente
 
 ---
 
-**?? Sistema AnaBank profissional pronto para uso!**
+**Sistema AnaBank profissional pronto para uso!**

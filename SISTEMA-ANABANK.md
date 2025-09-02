@@ -1,23 +1,23 @@
-# ?? AnaBank - Sistema Bancário Digital
+# AnaBank - Sistema Bancario Digital
 
-## ?? **Execução Rápida**
+## EXECUCAO RAPIDA
 
-### **Pré-requisito**
-- ? **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
+### Pre-requisito:
+- Docker Desktop ([Download](https://www.docker.com/products/docker-desktop/))
 
-### **Iniciar Sistema**
+### Iniciar Sistema:
 ```bash
 .\INICIAR-ANABANK.bat
 ```
 
-### **Testar no Postman**
-1. **Importe**: `AnaBank-Complete.postman_collection.json`
-2. **Importe**: `AnaBank-Production.postman_environment.json`
-3. **Execute** a collection completa
+### Testar no Postman:
+1. Importe: `AnaBank-Complete.postman_collection.json`
+2. Importe: `AnaBank-Production.postman_environment.json`
+3. Execute a collection completa
 
 ---
 
-## ?? **URLs do Sistema**
+## URLs DO SISTEMA
 
 | Servico | URL | Porta |
 |---------|-----|-------|
@@ -28,72 +28,72 @@
 
 ---
 
-## ?? **Fluxo de Teste Automatizado**
+## FLUXO DE TESTE AUTOMATIZADO
 
 A collection executa automaticamente:
 
-### **1. Setup e Validacao**
-- ? Health check das APIs
-- ? Verificacao de conectividade
+### 1. Setup e Validacao
+- Health check das APIs
+- Verificacao de conectividade
 
-### **2. Fluxo Usuario Origem**
-- ? Cadastro de usuario
-- ? Login (captura token automatico)
-- ? Deposito R$ 5.000
-- ? Consulta saldo inicial
+### 2. Fluxo Usuario Origem
+- Cadastro de usuario
+- Login (captura token automatico)
+- Deposito R$ 5.000
+- Consulta saldo inicial
 
-### **3. Fluxo Usuario Destino**
-- ? Cadastro de usuario
-- ? Login (captura token automatico)
-- ? Deposito R$ 1.000
-- ? Consulta saldo inicial
+### 3. Fluxo Usuario Destino
+- Cadastro de usuario
+- Login (captura token automatico)
+- Deposito R$ 1.000
+- Consulta saldo inicial
 
-### **4. Transferencias**
-- ? Usuario 1 transfere R$ 100 para Usuario 2
-- ? Usuario 1 transfere R$ 250 para Usuario 2
-- ? Usuario 1 transfere R$ 150 para Usuario 2
-- ? Worker processa tarifas via Kafka
+### 4. Transferencias
+- Usuario 1 transfere R$ 100 para Usuario 2
+- Usuario 1 transfere R$ 250 para Usuario 2
+- Usuario 1 transfere R$ 150 para Usuario 2
+- Worker processa tarifas via Kafka
 
-### **5. Validacao Final**
-- ? Usuario 1: R$ 4.494 (5000 - 500 transferencias - 6 tarifas)
-- ? Usuario 2: R$ 1.500 (1000 + 500 recebimentos)
+### 5. Validacao Final
+- Usuario 1: R$ 4.494 (5000 - 500 transferencias - 6 tarifas)
+- Usuario 2: R$ 1.500 (1000 + 500 recebimentos)
 
 ---
 
-## ?? **Monitoramento**
+## MONITORAMENTO
 
-### **Logs em tempo real:**
+### Logs em tempo real:
 ```bash
 docker-compose -f docker-compose.production.yml logs -f
 ```
 
-### **Status dos containers:**
+### Status dos containers:
 ```bash
 docker-compose -f docker-compose.production.yml ps
 ```
 
 ---
 
-## ? **Parar Sistema**
+## Parar Sistema:
 ```bash
 .\PARAR-ANABANK.bat
 ```
 
 ---
 
-## ? **Tecnologias Implementadas**
+## TECNOLOGIAS IMPLEMENTADAS
 
 | Tecnologia | Status | Evidencia |
 |------------|--------|-----------|
-| **DDD + CQRS** | ? | Arquitetura implementada |
-| **JWT obrigatorio** | ? | Endpoints protegidos |
-| **SQLite** | ? | Bancos funcionais |
-| **Worker Service** | ? | Processamento tarifas |
-| **Kafka** | ? | Comunicacao assincrona |
-| **Docker** | ? | Containerizacao completa |
-| **Swagger** | ? | Documentacao interativa |
-| **Testes** | ? | Collection automatizada |
+| **DDD + CQRS** | OK | Arquitetura implementada |
+| **JWT obrigatorio** | OK | Endpoints protegidos |
+| **SQLite** | OK | Bancos funcionais |
+| **Worker Service** | OK | Processamento tarifas |
+| **Kafka** | OK | Comunicacao assincrona |
+| **Docker** | OK | Containerizacao completa |
+| **Swagger** | OK | Documentacao interativa |
+| **Testes** | OK | Collection automatizada |
 
 ---
 
-**?? Sistema AnaBank completo funcionando! Execute o .bat e teste no Postman!**
+**Sistema AnaBank completo funcionando! Execute o .bat e teste no Postman!**
