@@ -7,22 +7,22 @@ Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 se
 [![Tests](https://img.shields.io/badge/Tests-37%20Passing-green.svg)](#testes)
 [![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-orange.svg)](#arquitetura)
 
-## ?? **PARA AVALIAÇÃO - EXECUÇÃO RÁPIDA**
+## ?? **EXECUÇÃO RÁPIDA**
 
 ### **Pré-requisito único:**
 - ? **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
 
 ### **Iniciar sistema completo:**
 ```bash
-.\INICIAR-AVALIACAO.bat
+.\INICIAR-ANABANK.bat
 ```
 
 ### **Testar no Postman:**
-1. **Importe**: `AnaBank-Avaliacao-Final.postman_collection.json`
-2. **Importe**: `AnaBank-Avaliacao-Final.postman_environment.json`
+1. **Importe**: `AnaBank-Complete.postman_collection.json`
+2. **Importe**: `AnaBank-Production.postman_environment.json`
 3. **Execute** a collection completa (testes automáticos)
 
-**?? Resultado esperado:** Sistema funcionando com Ana (R$ 4.494) e João (R$ 1.500)
+**?? Resultado esperado:** Sistema funcionando com saldos finais calculados automaticamente
 
 ---
 
@@ -70,18 +70,18 @@ AnaBank/
 
 ## Quick Start
 
-### Opção 1: Sistema de Avaliação (Recomendado)
+### Opção 1: Sistema Completo (Recomendado)
 
 ```bash
 # Execute o script único
-.\INICIAR-AVALIACAO.bat
+.\INICIAR-ANABANK.bat
 ```
 
 ### Opção 2: Docker Compose
 
 ```bash
-# Sistema de avaliação
-docker-compose -f docker-compose.avaliacao.yml up -d
+# Sistema completo
+docker-compose -f docker-compose.production.yml up -d
 
 # Desenvolvimento
 cd deploy
@@ -158,12 +158,12 @@ dotnet test --collect:"XPlat Code Coverage"
 # 1. Cadastrar conta
 curl -X POST http://localhost:8091/api/accounts \
   -H "Content-Type: application/json" \
-  -d '{"name":"Ana Silva","cpf":"12345678909","password":"123456"}'
+  -d '{"name":"Carlos Silva","cpf":"11144477735","password":"senha123"}'
 
 # 2. Login (recebe JWT)
 curl -X POST http://localhost:8091/api/accounts/login \
   -H "Content-Type: application/json" \
-  -d '{"cpfOrNumber":"12345678909","password":"123456"}'
+  -d '{"cpfOrNumber":"11144477735","password":"senha123"}'
 
 # 3. Depositar
 curl -X POST http://localhost:8091/api/accounts/movements \
@@ -188,13 +188,13 @@ curl http://localhost:8092/health  # Transfers
 
 ### Logs via Docker
 ```bash
-# Ver logs do sistema de avaliação
-docker-compose -f docker-compose.avaliacao.yml logs -f
+# Ver logs do sistema completo
+docker-compose -f docker-compose.production.yml logs -f
 
 # Logs específicos
-docker-compose -f docker-compose.avaliacao.yml logs -f accounts-api
-docker-compose -f docker-compose.avaliacao.yml logs -f transfers-api
-docker-compose -f docker-compose.avaliacao.yml logs -f fees-worker
+docker-compose -f docker-compose.production.yml logs -f accounts-api
+docker-compose -f docker-compose.production.yml logs -f transfers-api
+docker-compose -f docker-compose.production.yml logs -f fees-worker
 ```
 
 ## Características Técnicas
@@ -232,8 +232,8 @@ docker-compose -f docker-compose.avaliacao.yml logs -f fees-worker
 - [Arquitetura Detalhada](docs/ARCHITECTURE.md)
 - [Guia de APIs](docs/API_GUIDE.md)
 - [Deploy com Docker](deploy/)
-- [Avaliação Final](AVALIACAO-FINAL.md)
-- [Guia Rápido](GUIA-RAPIDO-AVALIACAO.md)
+- [Sistema AnaBank](SISTEMA-ANABANK.md)
+- [Guia Rápido](GUIA-RAPIDO.md)
 
 ## Contribuição
 

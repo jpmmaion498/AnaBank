@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "anabank-avaliacao-final",
-		"name": "AnaBank - Avaliacao Final",
-		"description": "Collection completa para avaliacao do sistema AnaBank - Todas as funcionalidades testadas automaticamente",
+		"_postman_id": "anabank-complete-system",
+		"name": "AnaBank - Sistema Completo",
+		"description": "Collection completa do sistema bancario AnaBank - Todas as funcionalidades testadas automaticamente",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -21,7 +21,7 @@
 									"    const response = pm.response.json();",
 									"    pm.expect(response.status).to.equal('Healthy');",
 									"});",
-									"console.log('? Accounts API online');"
+									"console.log('✅ Accounts API online');"
 								],
 								"type": "text/javascript"
 							}
@@ -49,7 +49,7 @@
 									"    const response = pm.response.json();",
 									"    pm.expect(response.status).to.equal('Healthy');",
 									"});",
-									"console.log('? Transfers API online');"
+									"console.log('✅ Transfers API online');"
 								],
 								"type": "text/javascript"
 							}
@@ -68,10 +68,10 @@
 			]
 		},
 		{
-			"name": "02 - FLUXO ANA SILVA",
+			"name": "02 - USUARIO ORIGEM",
 			"item": [
 				{
-					"name": "Cadastrar Ana Silva",
+					"name": "Cadastrar Usuario Origem",
 					"event": [
 						{
 							"listen": "test",
@@ -79,21 +79,21 @@
 								"exec": [
 									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('ana_account_id', response.id);",
-									"    pm.environment.set('ana_account_number', response.number);",
-									"    pm.test('Ana Silva cadastrada com sucesso', () => {",
+									"    pm.environment.set('user1_account_id', response.id);",
+									"    pm.environment.set('user1_account_number', response.number);",
+									"    pm.test('Usuario origem cadastrado com sucesso', () => {",
 									"        pm.expect(response.id).to.not.be.empty;",
 									"        pm.expect(response.number).to.not.be.empty;",
-									"        pm.expect(response.name).to.equal('Ana Silva');",
+									"        pm.expect(response.name).to.equal('Carlos Silva');",
 									"    });",
-									"    console.log('? Ana cadastrada - ID:', response.id, 'Numero:', response.number);",
+									"    console.log('✅ Usuario origem cadastrado - ID:', response.id, 'Numero:', response.number);",
 									"} else if (pm.response.code === 400) {",
-									"    pm.test('Ana Silva ja existe - continuando teste', () => {",
+									"    pm.test('Usuario origem ja existe - continuando teste', () => {",
 									"        pm.expect(pm.response.code).to.equal(400);",
 									"    });",
-									"    console.log('?? Ana ja cadastrada - continuando...');",
+									"    console.log('⚠️ Usuario origem ja cadastrado - continuando...');",
 									"} else {",
-									"    pm.test('Erro no cadastro da Ana', () => {",
+									"    pm.test('Erro no cadastro do usuario origem', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -112,7 +112,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Ana Silva\",\n    \"cpf\": \"12345678909\",\n    \"password\": \"123456\"\n}"
+							"raw": "{\n    \"name\": \"Carlos Silva\",\n    \"cpf\": \"11144477735\",\n    \"password\": \"senha123\"\n}"
 						},
 						"url": {
 							"raw": "{{accounts_url}}/api/accounts",
@@ -122,7 +122,7 @@
 					}
 				},
 				{
-					"name": "Login Ana Silva",
+					"name": "Login Usuario Origem",
 					"event": [
 						{
 							"listen": "test",
@@ -130,13 +130,13 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('ana_token', response.token);",
-									"    pm.test('Login Ana realizado com sucesso', () => {",
+									"    pm.environment.set('user1_token', response.token);",
+									"    pm.test('Login usuario origem realizado com sucesso', () => {",
 									"        pm.expect(response.token).to.not.be.empty;",
 									"    });",
-									"    console.log('? Ana logada - Token JWT capturado');",
+									"    console.log('✅ Usuario origem logado - Token JWT capturado');",
 									"} else {",
-									"    pm.test('Erro no login da Ana', () => {",
+									"    pm.test('Erro no login do usuario origem', () => {",
 									"        pm.expect.fail('Login falhou: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -155,7 +155,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"cpfOrNumber\": \"12345678909\",\n    \"password\": \"123456\"\n}"
+							"raw": "{\n    \"cpfOrNumber\": \"11144477735\",\n    \"password\": \"senha123\"\n}"
 						},
 						"url": {
 							"raw": "{{accounts_url}}/api/accounts/login",
@@ -165,16 +165,16 @@
 					}
 				},
 				{
-					"name": "Deposito Ana - R$ 5.000",
+					"name": "Deposito Usuario Origem - R$ 5.000",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('Deposito Ana realizado', () => {",
+									"pm.test('Deposito usuario origem realizado', () => {",
 									"    pm.expect(pm.response.code).to.equal(204);",
 									"});",
-									"console.log('? Ana depositou R$ 5.000,00');"
+									"console.log('✅ Usuario origem depositou R$ 5.000,00');"
 								],
 								"type": "text/javascript"
 							}
@@ -189,11 +189,11 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							},
 							{
 								"key": "Idempotency-Key",
-								"value": "deposit-ana-5000"
+								"value": "deposit-user1-5000"
 							}
 						],
 						"body": {
@@ -208,7 +208,7 @@
 					}
 				},
 				{
-					"name": "Consultar Saldo Inicial Ana",
+					"name": "Consultar Saldo Inicial Usuario Origem",
 					"event": [
 						{
 							"listen": "test",
@@ -216,13 +216,13 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('ana_balance_initial', response.balance);",
-									"    pm.test('Saldo inicial Ana: R$ ' + response.balance, () => {",
+									"    pm.environment.set('user1_balance_initial', response.balance);",
+									"    pm.test('Saldo inicial usuario origem: R$ ' + response.balance, () => {",
 									"        pm.expect(response.balance).to.equal(5000);",
 									"    });",
-									"    console.log('? Saldo inicial Ana: R$', response.balance);",
+									"    console.log('✅ Saldo inicial usuario origem: R$', response.balance);",
 									"} else {",
-									"    pm.test('Erro na consulta do saldo da Ana', () => {",
+									"    pm.test('Erro na consulta do saldo do usuario origem', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -236,7 +236,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							}
 						],
 						"url": {
@@ -249,10 +249,10 @@
 			]
 		},
 		{
-			"name": "03 - FLUXO JOAO SANTOS",
+			"name": "03 - USUARIO DESTINO",
 			"item": [
 				{
-					"name": "Cadastrar Joao Santos",
+					"name": "Cadastrar Usuario Destino",
 					"event": [
 						{
 							"listen": "test",
@@ -260,21 +260,21 @@
 								"exec": [
 									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('joao_account_id', response.id);",
-									"    pm.environment.set('joao_account_number', response.number);",
-									"    pm.test('Joao Santos cadastrado com sucesso', () => {",
+									"    pm.environment.set('user2_account_id', response.id);",
+									"    pm.environment.set('user2_account_number', response.number);",
+									"    pm.test('Usuario destino cadastrado com sucesso', () => {",
 									"        pm.expect(response.id).to.not.be.empty;",
 									"        pm.expect(response.number).to.not.be.empty;",
-									"        pm.expect(response.name).to.equal('Joao Santos');",
+									"        pm.expect(response.name).to.equal('Maria Santos');",
 									"    });",
-									"    console.log('? Joao cadastrado - ID:', response.id, 'Numero:', response.number);",
+									"    console.log('✅ Usuario destino cadastrado - ID:', response.id, 'Numero:', response.number);",
 									"} else if (pm.response.code === 400) {",
-									"    pm.test('Joao Santos ja existe - continuando teste', () => {",
+									"    pm.test('Usuario destino ja existe - continuando teste', () => {",
 									"        pm.expect(pm.response.code).to.equal(400);",
 									"    });",
-									"    console.log('?? Joao ja cadastrado - continuando...');",
+									"    console.log('⚠️ Usuario destino ja cadastrado - continuando...');",
 									"} else {",
-									"    pm.test('Erro no cadastro do Joao', () => {",
+									"    pm.test('Erro no cadastro do usuario destino', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -293,7 +293,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Joao Santos\",\n    \"cpf\": \"98765432100\",\n    \"password\": \"654321\"\n}"
+							"raw": "{\n    \"name\": \"Maria Santos\",\n    \"cpf\": \"52998224725\",\n    \"password\": \"senha456\"\n}"
 						},
 						"url": {
 							"raw": "{{accounts_url}}/api/accounts",
@@ -303,7 +303,7 @@
 					}
 				},
 				{
-					"name": "Login Joao Santos",
+					"name": "Login Usuario Destino",
 					"event": [
 						{
 							"listen": "test",
@@ -311,13 +311,13 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('joao_token', response.token);",
-									"    pm.test('Login Joao realizado com sucesso', () => {",
+									"    pm.environment.set('user2_token', response.token);",
+									"    pm.test('Login usuario destino realizado com sucesso', () => {",
 									"        pm.expect(response.token).to.not.be.empty;",
 									"    });",
-									"    console.log('? Joao logado - Token JWT capturado');",
+									"    console.log('✅ Usuario destino logado - Token JWT capturado');",
 									"} else {",
-									"    pm.test('Erro no login do Joao', () => {",
+									"    pm.test('Erro no login do usuario destino', () => {",
 									"        pm.expect.fail('Login falhou: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -336,7 +336,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"cpfOrNumber\": \"98765432100\",\n    \"password\": \"654321\"\n}"
+							"raw": "{\n    \"cpfOrNumber\": \"52998224725\",\n    \"password\": \"senha456\"\n}"
 						},
 						"url": {
 							"raw": "{{accounts_url}}/api/accounts/login",
@@ -346,16 +346,16 @@
 					}
 				},
 				{
-					"name": "Deposito Joao - R$ 1.000",
+					"name": "Deposito Usuario Destino - R$ 1.000",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('Deposito Joao realizado', () => {",
+									"pm.test('Deposito usuario destino realizado', () => {",
 									"    pm.expect(pm.response.code).to.equal(204);",
 									"});",
-									"console.log('? Joao depositou R$ 1.000,00');"
+									"console.log('✅ Usuario destino depositou R$ 1.000,00');"
 								],
 								"type": "text/javascript"
 							}
@@ -370,11 +370,11 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{joao_token}}"
+								"value": "Bearer {{user2_token}}"
 							},
 							{
 								"key": "Idempotency-Key",
-								"value": "deposit-joao-1000"
+								"value": "deposit-user2-1000"
 							}
 						],
 						"body": {
@@ -389,7 +389,7 @@
 					}
 				},
 				{
-					"name": "Consultar Saldo Inicial Joao",
+					"name": "Consultar Saldo Inicial Usuario Destino",
 					"event": [
 						{
 							"listen": "test",
@@ -397,13 +397,13 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('joao_balance_initial', response.balance);",
-									"    pm.test('Saldo inicial Joao: R$ ' + response.balance, () => {",
+									"    pm.environment.set('user2_balance_initial', response.balance);",
+									"    pm.test('Saldo inicial usuario destino: R$ ' + response.balance, () => {",
 									"        pm.expect(response.balance).to.equal(1000);",
 									"    });",
-									"    console.log('? Saldo inicial Joao: R$', response.balance);",
+									"    console.log('✅ Saldo inicial usuario destino: R$', response.balance);",
 									"} else {",
-									"    pm.test('Erro na consulta do saldo do Joao', () => {",
+									"    pm.test('Erro na consulta do saldo do usuario destino', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -417,7 +417,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer {{joao_token}}"
+								"value": "Bearer {{user2_token}}"
 							}
 						],
 						"url": {
@@ -433,7 +433,7 @@
 			"name": "04 - TRANSFERENCIAS",
 			"item": [
 				{
-					"name": "Transferencia 1 - R$ 100 (Ana para Joao)",
+					"name": "Transferencia 1 - R$ 100",
 					"event": [
 						{
 							"listen": "test",
@@ -442,7 +442,7 @@
 									"pm.test('Transferencia R$ 100 realizada', () => {",
 									"    pm.expect(pm.response.code).to.equal(204);",
 									"});",
-									"console.log('? Transferencia R$ 100: Ana ? Joao');"
+									"console.log('✅ Transferencia R$ 100: Usuario 1 → Usuario 2');"
 								],
 								"type": "text/javascript"
 							}
@@ -457,16 +457,16 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							},
 							{
 								"key": "Idempotency-Key",
-								"value": "transfer-ana-joao-100"
+								"value": "transfer-user1-user2-100"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 100.00\n}"
+							"raw": "{\n    \"destinationAccountNumber\": \"{{user2_account_number}}\",\n    \"value\": 100.00\n}"
 						},
 						"url": {
 							"raw": "{{transfers_url}}/api/transfers",
@@ -476,7 +476,7 @@
 					}
 				},
 				{
-					"name": "Transferencia 2 - R$ 250 (Ana para Joao)",
+					"name": "Transferencia 2 - R$ 250",
 					"event": [
 						{
 							"listen": "test",
@@ -485,7 +485,7 @@
 									"pm.test('Transferencia R$ 250 realizada', () => {",
 									"    pm.expect(pm.response.code).to.equal(204);",
 									"});",
-									"console.log('? Transferencia R$ 250: Ana ? Joao');"
+									"console.log('✅ Transferencia R$ 250: Usuario 1 → Usuario 2');"
 								],
 								"type": "text/javascript"
 							}
@@ -500,16 +500,16 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							},
 							{
 								"key": "Idempotency-Key",
-								"value": "transfer-ana-joao-250"
+								"value": "transfer-user1-user2-250"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 250.00\n}"
+							"raw": "{\n    \"destinationAccountNumber\": \"{{user2_account_number}}\",\n    \"value\": 250.00\n}"
 						},
 						"url": {
 							"raw": "{{transfers_url}}/api/transfers",
@@ -519,7 +519,7 @@
 					}
 				},
 				{
-					"name": "Transferencia 3 - R$ 150 (Ana para Joao)",
+					"name": "Transferencia 3 - R$ 150",
 					"event": [
 						{
 							"listen": "test",
@@ -528,8 +528,8 @@
 									"pm.test('Transferencia R$ 150 realizada', () => {",
 									"    pm.expect(pm.response.code).to.equal(204);",
 									"});",
-									"console.log('? Transferencia R$ 150: Ana ? Joao');",
-									"console.log('? Aguardando Worker processar tarifas via Kafka...');"
+									"console.log('✅ Transferencia R$ 150: Usuario 1 → Usuario 2');",
+									"console.log('⏳ Aguardando Worker processar tarifas via Kafka...');"
 								],
 								"type": "text/javascript"
 							}
@@ -544,16 +544,16 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							},
 							{
 								"key": "Idempotency-Key",
-								"value": "transfer-ana-joao-150"
+								"value": "transfer-user1-user2-150"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"destinationAccountNumber\": \"{{joao_account_number}}\",\n    \"value\": 150.00\n}"
+							"raw": "{\n    \"destinationAccountNumber\": \"{{user2_account_number}}\",\n    \"value\": 150.00\n}"
 						},
 						"url": {
 							"raw": "{{transfers_url}}/api/transfers",
@@ -572,7 +572,7 @@
 									"pm.test('Aguardando processamento de tarifas', () => {",
 									"    pm.expect(pm.response.code).to.equal(200);",
 									"});",
-									"console.log('? Worker deve processar 3 tarifas de R$ 2,00 cada (total R$ 6,00)');"
+									"console.log('⏳ Worker deve processar 3 tarifas de R$ 2,00 cada (total R$ 6,00)');"
 								],
 								"type": "text/javascript"
 							}
@@ -581,7 +581,6 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"// Aguardar 10 segundos para processamento",
 									"setTimeout(() => {}, 10000);"
 								],
 								"type": "text/javascript"
@@ -604,7 +603,7 @@
 			"name": "05 - VALIDACAO FINAL",
 			"item": [
 				{
-					"name": "Saldo Final Ana",
+					"name": "Saldo Final Usuario Origem",
 					"event": [
 						{
 							"listen": "test",
@@ -612,23 +611,23 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    const expectedBalance = 4494; // 5000 - 500 (transferencias) - 6 (tarifas)",
-									"    pm.environment.set('ana_balance_final', response.balance);",
+									"    const expectedBalance = 4494;",
+									"    pm.environment.set('user1_balance_final', response.balance);",
 									"    ",
-									"    pm.test('Saldo final Ana: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
+									"    pm.test('Saldo final usuario origem: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
 									"        pm.expect(response.balance).to.be.closeTo(expectedBalance, 10);",
 									"    });",
 									"    ",
-									"    console.log('?? Saldo final Ana: R$', response.balance);",
-									"    console.log('?? Calculo: R$ 5.000 - R$ 500 (transferencias) - R$ 6 (tarifas) = R$ 4.494');",
+									"    console.log('💰 Saldo final usuario origem: R$', response.balance);",
+									"    console.log('📊 Calculo: R$ 5.000 - R$ 500 (transferencias) - R$ 6 (tarifas) = R$ 4.494');",
 									"    ",
 									"    if (response.balance === expectedBalance) {",
-									"        console.log('? PERFEITO! Saldo exato como esperado!');",
+									"        console.log('✅ PERFEITO! Saldo exato como esperado!');",
 									"    } else {",
-									"        console.log('?? Diferenca de R$', Math.abs(response.balance - expectedBalance), '- Pode ser processamento assincrono');",
+									"        console.log('⚠️ Diferenca de R$', Math.abs(response.balance - expectedBalance), '- Pode ser processamento assincrono');",
 									"    }",
 									"} else {",
-									"    pm.test('Erro na consulta do saldo final da Ana', () => {",
+									"    pm.test('Erro na consulta do saldo final do usuario origem', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -642,7 +641,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer {{ana_token}}"
+								"value": "Bearer {{user1_token}}"
 							}
 						],
 						"url": {
@@ -653,7 +652,7 @@
 					}
 				},
 				{
-					"name": "Saldo Final Joao",
+					"name": "Saldo Final Usuario Destino",
 					"event": [
 						{
 							"listen": "test",
@@ -661,21 +660,21 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    const expectedBalance = 1500; // 1000 + 500 (recebimentos)",
-									"    pm.environment.set('joao_balance_final', response.balance);",
+									"    const expectedBalance = 1500;",
+									"    pm.environment.set('user2_balance_final', response.balance);",
 									"    ",
-									"    pm.test('Saldo final Joao: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
+									"    pm.test('Saldo final usuario destino: R$ ' + response.balance + ' (esperado: R$ ' + expectedBalance + ')', () => {",
 									"        pm.expect(response.balance).to.equal(expectedBalance);",
 									"    });",
 									"    ",
-									"    console.log('?? Saldo final Joao: R$', response.balance);",
-									"    console.log('?? Calculo: R$ 1.000 + R$ 500 (recebimentos) = R$ 1.500');",
+									"    console.log('💰 Saldo final usuario destino: R$', response.balance);",
+									"    console.log('📊 Calculo: R$ 1.000 + R$ 500 (recebimentos) = R$ 1.500');",
 									"    ",
 									"    if (response.balance === expectedBalance) {",
-									"        console.log('? PERFEITO! Saldo exato como esperado!');",
+									"        console.log('✅ PERFEITO! Saldo exato como esperado!');",
 									"    }",
 									"} else {",
-									"    pm.test('Erro na consulta do saldo final do Joao', () => {",
+									"    pm.test('Erro na consulta do saldo final do usuario destino', () => {",
 									"        pm.expect.fail('Erro: ' + pm.response.text());",
 									"    });",
 									"}"
@@ -689,7 +688,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer {{joao_token}}"
+								"value": "Bearer {{user2_token}}"
 							}
 						],
 						"url": {
@@ -700,43 +699,43 @@
 					}
 				},
 				{
-					"name": "Resumo Final do Teste",
+					"name": "Resumo Final do Sistema",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('TESTE ANABANK FINALIZADO COM SUCESSO', () => {",
+									"pm.test('SISTEMA ANABANK FINALIZADO COM SUCESSO', () => {",
 									"    pm.expect(pm.response.code).to.equal(200);",
 									"});",
 									"",
-									"const anaInitial = pm.environment.get('ana_balance_initial') || 0;",
-									"const anaFinal = pm.environment.get('ana_balance_final') || 0;",
-									"const joaoInitial = pm.environment.get('joao_balance_initial') || 0;",
-									"const joaoFinal = pm.environment.get('joao_balance_final') || 0;",
+									"const user1Initial = pm.environment.get('user1_balance_initial') || 0;",
+									"const user1Final = pm.environment.get('user1_balance_final') || 0;",
+									"const user2Initial = pm.environment.get('user2_balance_initial') || 0;",
+									"const user2Final = pm.environment.get('user2_balance_final') || 0;",
 									"",
 									"console.log('===============================================');",
-									"console.log('?? TESTE ANABANK FINALIZADO COM SUCESSO!');",
+									"console.log('🎉 SISTEMA ANABANK FINALIZADO COM SUCESSO!');",
 									"console.log('===============================================');",
 									"console.log('');",
-									"console.log('?? ANA SILVA:');",
-									"console.log('   Saldo inicial: R$', anaInitial);",
-									"console.log('   Saldo final:   R$', anaFinal);",
-									"console.log('   Diferenca:     R$', (anaFinal - anaInitial));",
+									"console.log('👤 USUARIO ORIGEM:');",
+									"console.log('   Saldo inicial: R$', user1Initial);",
+									"console.log('   Saldo final:   R$', user1Final);",
+									"console.log('   Diferenca:     R$', (user1Final - user1Initial));",
 									"console.log('');",
-									"console.log('?? JOAO SANTOS:');",
-									"console.log('   Saldo inicial: R$', joaoInitial);",
-									"console.log('   Saldo final:   R$', joaoFinal);",
-									"console.log('   Diferenca:     R$', (joaoFinal - joaoInitial));",
+									"console.log('👨 USUARIO DESTINO:');",
+									"console.log('   Saldo inicial: R$', user2Initial);",
+									"console.log('   Saldo final:   R$', user2Final);",
+									"console.log('   Diferenca:     R$', (user2Final - user2Initial));",
 									"console.log('');",
-									"console.log('?? OPERACOES REALIZADAS:');",
-									"console.log('   ? 3 Transferencias (R$ 100 + R$ 250 + R$ 150 = R$ 500)');",
-									"console.log('   ? 3 Tarifas processadas via Kafka (3 � R$ 2 = R$ 6)');",
-									"console.log('   ? Worker funcionando corretamente');",
-									"console.log('   ? JWT Authentication funcionando');",
-									"console.log('   ? APIs Accounts + Transfers funcionando');",
+									"console.log('📊 OPERACOES REALIZADAS:');",
+									"console.log('   ✅ 3 Transferencias (R$ 100 + R$ 250 + R$ 150 = R$ 500)');",
+									"console.log('   ✅ 3 Tarifas processadas via Kafka (3 × R$ 2 = R$ 6)');",
+									"console.log('   ✅ Worker funcionando corretamente');",
+									"console.log('   ✅ JWT Authentication funcionando');",
+									"console.log('   ✅ APIs Accounts + Transfers funcionando');",
 									"console.log('');",
-									"console.log('?? SISTEMA ANABANK 100% FUNCIONAL!');"
+									"console.log('🏆 SISTEMA ANABANK 100% FUNCIONAL!');"
 								],
 								"type": "text/javascript"
 							}
@@ -755,4 +754,4 @@
 			]
 		}
 	]
-}
+}}

@@ -1,9 +1,9 @@
 @echo off
-echo ?? AnaBank - Sistema Final para Avaliacao
+echo ?? AnaBank - Iniciando Sistema Completo
 
 echo.
 echo ===============================================
-echo    ANABANK - SISTEMA FINAL DE AVALIACAO
+echo    ANABANK - SISTEMA BANCARIO DIGITAL
 echo ===============================================
 echo.
 
@@ -33,7 +33,7 @@ if not errorlevel 1 (
 
 echo.
 echo ?? Preparando ambiente...
-docker-compose -f docker-compose.avaliacao.yml down >nul 2>&1
+docker-compose -f docker-compose.production.yml down >nul 2>&1
 
 echo.
 echo ??? Iniciando sistema completo...
@@ -42,12 +42,12 @@ echo   ?? APIs: Accounts (8091) + Transfers (8092)
 echo   ?? Worker: Fees (background processing)
 echo   ?? Load Balancer: Nginx (8090)
 
-docker-compose -f docker-compose.avaliacao.yml up -d
+docker-compose -f docker-compose.production.yml up -d
 
 if errorlevel 1 (
     echo ? Erro ao iniciar containers!
     echo ?? Verificando logs...
-    docker-compose -f docker-compose.avaliacao.yml logs
+    docker-compose -f docker-compose.production.yml logs
     pause
     exit /b 1
 )
@@ -61,7 +61,7 @@ timeout /t 60 /nobreak >nul
 
 echo.
 echo ?? Verificando status dos containers...
-docker-compose -f docker-compose.avaliacao.yml ps
+docker-compose -f docker-compose.production.yml ps
 
 echo.
 echo ?? Testando conectividade das APIs...
@@ -73,32 +73,32 @@ powershell -Command "try { $r = Invoke-RestMethod 'http://localhost:8092/health'
 
 echo.
 echo ===============================================
-echo     ?? ANABANK SISTEMA FINAL INICIADO!
+echo     ?? ANABANK SISTEMA INICIADO COM SUCESSO!
 echo ===============================================
 echo.
-echo ?? URLs para teste:
+echo ?? URLs do sistema:
 echo   • Accounts API:  http://localhost:8091/swagger
 echo   • Transfers API: http://localhost:8092/swagger
 echo   • Health Check:  http://localhost:8091/health
 echo   • Health Check:  http://localhost:8092/health
 echo.
 echo ?? TESTE NO POSTMAN:
-echo   1. Importe: AnaBank-Avaliacao-Final.postman_collection.json
-echo   2. Importe: AnaBank-Avaliacao-Final.postman_environment.json
+echo   1. Importe: AnaBank-Complete.postman_collection.json
+echo   2. Importe: AnaBank-Production.postman_environment.json
 echo   3. Execute a collection completa
 echo   4. Observe os resultados automaticos no console
 echo.
-echo ?? Resultados esperados:
-echo   • Ana Silva: R$ 4.494 (5000 - 500 transferencias - 6 tarifas)
-echo   • Joao Santos: R$ 1.500 (1000 + 500 recebimentos)
+echo ?? Fluxo de teste esperado:
+echo   • Usuario 1: R$ 4.494 (apos transferencias + tarifas)
+echo   • Usuario 2: R$ 1.500 (apos recebimentos)
 echo   • Worker processando tarifas via Kafka
 echo.
 echo ?? Monitoramento:
-echo   • Status: docker-compose -f docker-compose.avaliacao.yml ps
-echo   • Logs: docker-compose -f docker-compose.avaliacao.yml logs -f
+echo   • Status: docker-compose -f docker-compose.production.yml ps
+echo   • Logs: docker-compose -f docker-compose.production.yml logs -f
 echo.
-echo ?? Para parar: .\PARAR-AVALIACAO.bat
+echo ?? Para parar: .\PARAR-ANABANK.bat
 echo.
-echo ? SISTEMA PRONTO PARA AVALIACAO!
+echo ? SISTEMA ANABANK OPERACIONAL!
 echo.
 pause

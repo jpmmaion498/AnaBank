@@ -1,18 +1,18 @@
-# ?? AnaBank - Avaliacao Final
+# ?? AnaBank - Sistema Bancário Digital
 
-## ?? **Execucao em 1 Comando**
+## ?? **Execução Rápida**
 
-### **Pre-requisito**
+### **Pré-requisito**
 - ? **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
 
 ### **Iniciar Sistema**
 ```bash
-.\INICIAR-AVALIACAO.bat
+.\INICIAR-ANABANK.bat
 ```
 
 ### **Testar no Postman**
-1. **Importe**: `AnaBank-Avaliacao-Final.postman_collection.json`
-2. **Importe**: `AnaBank-Avaliacao-Final.postman_environment.json`
+1. **Importe**: `AnaBank-Complete.postman_collection.json`
+2. **Importe**: `AnaBank-Production.postman_environment.json`
 3. **Execute** a collection completa
 
 ---
@@ -36,27 +36,27 @@ A collection executa automaticamente:
 - ? Health check das APIs
 - ? Verificacao de conectividade
 
-### **2. Fluxo Ana (Conta Origem)**
-- ? Cadastro da Ana Silva
+### **2. Fluxo Usuario Origem**
+- ? Cadastro de usuario
 - ? Login (captura token automatico)
 - ? Deposito R$ 5.000
 - ? Consulta saldo inicial
 
-### **3. Fluxo Joao (Conta Destino)**
-- ? Cadastro do Joao Santos
+### **3. Fluxo Usuario Destino**
+- ? Cadastro de usuario
 - ? Login (captura token automatico)
 - ? Deposito R$ 1.000
 - ? Consulta saldo inicial
 
 ### **4. Transferencias**
-- ? Ana transfere R$ 100 para Joao
-- ? Ana transfere R$ 250 para Joao
-- ? Ana transfere R$ 150 para Joao
+- ? Usuario 1 transfere R$ 100 para Usuario 2
+- ? Usuario 1 transfere R$ 250 para Usuario 2
+- ? Usuario 1 transfere R$ 150 para Usuario 2
 - ? Worker processa tarifas via Kafka
 
 ### **5. Validacao Final**
-- ? Ana: R$ 4.494 (5000 - 500 transferencias - 6 tarifas)
-- ? Joao: R$ 1.500 (1000 + 500 recebimentos)
+- ? Usuario 1: R$ 4.494 (5000 - 500 transferencias - 6 tarifas)
+- ? Usuario 2: R$ 1.500 (1000 + 500 recebimentos)
 
 ---
 
@@ -64,27 +64,27 @@ A collection executa automaticamente:
 
 ### **Logs em tempo real:**
 ```bash
-docker-compose -f docker-compose.avaliacao.yml logs -f
+docker-compose -f docker-compose.production.yml logs -f
 ```
 
 ### **Status dos containers:**
 ```bash
-docker-compose -f docker-compose.avaliacao.yml ps
+docker-compose -f docker-compose.production.yml ps
 ```
 
 ---
 
 ## ? **Parar Sistema**
 ```bash
-.\PARAR-AVALIACAO.bat
+.\PARAR-ANABANK.bat
 ```
 
 ---
 
-## ? **Validacao dos Requisitos**
+## ? **Tecnologias Implementadas**
 
-| Requisito | Status | Evidencia |
-|-----------|--------|-----------|
+| Tecnologia | Status | Evidencia |
+|------------|--------|-----------|
 | **DDD + CQRS** | ? | Arquitetura implementada |
 | **JWT obrigatorio** | ? | Endpoints protegidos |
 | **SQLite** | ? | Bancos funcionais |
@@ -96,4 +96,4 @@ docker-compose -f docker-compose.avaliacao.yml ps
 
 ---
 
-**?? Sistema completo funcionando! Execute o .bat e teste no Postman!**
+**?? Sistema AnaBank completo funcionando! Execute o .bat e teste no Postman!**
