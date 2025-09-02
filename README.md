@@ -1,16 +1,16 @@
 # AnaBank - Banco Digital
 
-Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 seguindo padrões DDD + CQRS.
+Sistema de microsserviï¿½os para o Banco Digital da Ana, desenvolvido em .NET 8 seguindo padrï¿½es DDD + CQRS.
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-37%20Passing-green.svg)](#testes)
 [![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20CQRS-orange.svg)](#arquitetura)
 
-## ?? **EXECUÇÃO RÁPIDA**
+## ðŸš€ **EXECUÃ‡ÃƒO RÃPIDA**
 
-### **Pré-requisito único:**
-- ? **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
+### **PrÃ©-requisito Ãºnico:**
+- âœ… **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
 
 ### **Iniciar sistema completo:**
 ```bash
@@ -20,9 +20,9 @@ Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 se
 ### **Testar no Postman:**
 1. **Importe**: `AnaBank-Complete.postman_collection.json`
 2. **Importe**: `AnaBank-Production.postman_environment.json`
-3. **Execute** a collection completa (testes automáticos)
+3. **Execute** a collection completa (testes automï¿½ticos)
 
-**?? Resultado esperado:** Sistema funcionando com saldos finais calculados automaticamente
+**âš¡ Resultado esperado:** Sistema funcionando com saldos finais calculados automaticamente
 
 ---
 
@@ -30,54 +30,54 @@ Sistema de microsserviços para o Banco Digital da Ana, desenvolvido em .NET 8 se
 
 ```
 AnaBank/
-??? src/                          # Código fonte
-?   ??? Accounts/                 # Microsserviço de Contas
-?   ??? Transfers/                # Microsserviço de Transferências  
-?   ??? Fees/                     # Worker de Tarifas
-?   ??? BuildingBlocks/           # Componentes compartilhados
-??? tests/                        # Testes automatizados
-?   ??? AnaBank.Accounts.UnitTests/
-?   ??? AnaBank.Transfers.UnitTests/
-?   ??? AnaBank.Accounts.IntegrationTests/
-??? deploy/                       # Docker e deployment
-?   ??? docker-compose.yml        # Produção
-?   ??? docker-compose.dev.yml    # Desenvolvimento
-?   ??? nginx/                    # Load balancer
-??? config/                       # Configurações
-?   ??? Scripts/                  # Scripts SQL
-?   ??? *.md                      # Documentação de configuração
-??? docs/                         # Documentação
-    ??? ARCHITECTURE.md           # Arquitetura detalhada
-    ??? API_GUIDE.md              # Guia das APIs
+â”œâ”€â”€ src/                          # CÃ³digo fonte
+â”‚   â”œâ”€â”€ Accounts/                 # MicrosserviÃ§o de Contas
+â”‚   â”œâ”€â”€ Transfers/                # MicrosserviÃ§o de TransferÃªncias  
+â”‚   â”œâ”€â”€ Fees/                     # Worker de Tarifas
+â”‚   â””â”€â”€ BuildingBlocks/           # Componentes compartilhados
+â”œâ”€â”€ tests/                        # Testes automatizados
+â”‚   â”œâ”€â”€ AnaBank.Accounts.UnitTests/
+â”‚   â”œâ”€â”€ AnaBank.Transfers.UnitTests/
+â”‚   â””â”€â”€ AnaBank.Accounts.IntegrationTests/
+â”œâ”€â”€ deploy/                       # Docker e deployment
+â”‚   â”œâ”€â”€ docker-compose.yml        # ProduÃ§Ã£o
+â”‚   â”œâ”€â”€ docker-compose.dev.yml    # Desenvolvimento
+â”‚   â””â”€â”€ nginx/                    # Load balancer
+â”œâ”€â”€ config/                       # ConfiguraÃ§Ãµes
+â”‚   â”œâ”€â”€ Scripts/                  # Scripts SQL
+â”‚   â””â”€â”€ *.md                      # DocumentaÃ§Ã£o de configuraÃ§Ã£o
+â””â”€â”€ docs/                         # DocumentaÃ§Ã£o
+    â”œâ”€â”€ ARCHITECTURE.md           # Arquitetura detalhada
+    â””â”€â”€ API_GUIDE.md              # Guia das APIs
 ```
 
 ## Arquitetura
 
-### Microsserviços
-- **Accounts.API** (porta 8091): Gestão de contas correntes, movimentações e saldo
-- **Transfers.API** (porta 8092): Transferências entre contas
+### Microsserviï¿½os
+- **Accounts.API** (porta 8091): Gestï¿½o de contas correntes, movimentaï¿½ï¿½es e saldo
+- **Transfers.API** (porta 8092): Transferï¿½ncias entre contas
 - **Fees.Worker**: Processamento de tarifas via BackgroundService
 
 ### Tecnologias
 - **.NET 8** - Framework principal
 - **SQLite + Dapper** - Banco de dados e ORM
 - **MediatR** - Pattern CQRS
-- **JWT** - Autenticação e autorização
-- **FluentValidation** - Validações robustas
-- **Docker** - Containerização
-- **Kafka** - Mensageria assíncrona
+- **JWT** - Autenticaï¿½ï¿½o e autorizaï¿½ï¿½o
+- **FluentValidation** - Validaï¿½ï¿½es robustas
+- **Docker** - Containerizaï¿½ï¿½o
+- **Kafka** - Mensageria assï¿½ncrona
 - **Nginx** - Load balancer/proxy
 
 ## Quick Start
 
-### Opção 1: Sistema Completo (Recomendado)
+### Opï¿½ï¿½o 1: Sistema Completo (Recomendado)
 
 ```bash
-# Execute o script único
+# Execute o script ï¿½nico
 .\INICIAR-ANABANK.bat
 ```
 
-### Opção 2: Docker Compose
+### Opï¿½ï¿½o 2: Docker Compose
 
 ```bash
 # Sistema completo
@@ -87,12 +87,12 @@ docker-compose -f docker-compose.production.yml up -d
 cd deploy
 docker-compose -f docker-compose.dev.yml up -d
 
-# Produção
+# Produï¿½ï¿½o
 cd deploy
 docker-compose up -d
 ```
 
-### Opção 3: Execução Local
+### Opï¿½ï¿½o 3: Execuï¿½ï¿½o Local
 
 ```bash
 # Terminal 1 - Accounts API
@@ -104,9 +104,9 @@ cd src/Transfers/AnaBank.Transfers.API
 dotnet run --urls="http://localhost:8092"
 ```
 
-## URLs dos Serviços
+## URLs dos Serviï¿½os
 
-| Serviço | URL | Swagger |
+| Serviï¿½o | URL | Swagger |
 |---------|-----|---------|
 | **Accounts API** | http://localhost:8091 | http://localhost:8091/swagger |
 | **Transfers API** | http://localhost:8092 | http://localhost:8092/swagger |
@@ -116,21 +116,21 @@ dotnet run --urls="http://localhost:8092"
 
 ### Accounts API
 
-| Endpoint | Método | Descrição | Auth |
+| Endpoint | MÃ©todo | DescriÃ§Ã£o | Auth |
 |----------|--------|-----------|------|
-| `/api/accounts` | POST | Cadastrar conta | ? |
-| `/api/accounts/login` | POST | Login (gera JWT) | ? |
-| `/api/accounts/balance` | GET | Consultar saldo | ? |
-| `/api/accounts/movements` | POST | Movimentação (C/D) | ? |
-| `/api/accounts/deactivate` | POST | Desativar conta | ? |
+| `/api/accounts` | POST | Cadastrar conta | âŒ |
+| `/api/accounts/login` | POST | Login (gera JWT) | âŒ |
+| `/api/accounts/balance` | GET | Consultar saldo | âœ… |
+| `/api/accounts/movements` | POST | MovimentaÃ§Ã£o (C/D) | âœ… |
+| `/api/accounts/deactivate` | POST | Desativar conta | âœ… |
 
 ### Transfers API
 
-| Endpoint | Método | Descrição | Auth |
+| Endpoint | MÃ©todo | DescriÃ§Ã£o | Auth |
 |----------|--------|-----------|------|
-| `/api/transfers` | POST | Transferência entre contas | ? |
+| `/api/transfers` | POST | TransferÃªncia entre contas | âœ… |
 
-> **Documentação completa**: [API Guide](docs/API_GUIDE.md)
+> **Documentaï¿½ï¿½o completa**: [API Guide](docs/API_GUIDE.md)
 
 ## Testes
 
@@ -142,15 +142,15 @@ dotnet test
 dotnet test --collect:"XPlat Code Coverage"
 ```
 
-**Status atual**: ? **37 testes unitários** passando
+**Status atual**: âœ… **37 testes unitÃ¡rios** passando
 
-## Segurança
+## Seguranï¿½a
 
-- ? **JWT obrigatório** em todos os endpoints (exceto cadastro/login)
-- ? **Validação de CPF** com algoritmo padrão brasileiro
-- ? **Hash de senhas** com salt único
-- ? **Idempotência** via header `Idempotency-Key`
-- ? **CORS** configurado
+- âœ… **JWT obrigatÃ³rio** em todos os endpoints (exceto cadastro/login)
+- âœ… **ValidaÃ§Ã£o de CPF** com algoritmo padrÃ£o brasileiro
+- âœ… **Hash de senhas** com salt Ãºnico
+- âœ… **IdempotÃªncia** via header `Idempotency-Key`
+- âœ… **CORS** configurado
 
 ## Exemplo de Uso
 
@@ -191,51 +191,51 @@ curl http://localhost:8092/health  # Transfers
 # Ver logs do sistema completo
 docker-compose -f docker-compose.production.yml logs -f
 
-# Logs específicos
+# Logs especï¿½ficos
 docker-compose -f docker-compose.production.yml logs -f accounts-api
 docker-compose -f docker-compose.production.yml logs -f transfers-api
 docker-compose -f docker-compose.production.yml logs -f fees-worker
 ```
 
-## Características Técnicas
+## Caracterï¿½sticas Tï¿½cnicas
 
 ### Requisitos Atendidos
 - **DDD + CQRS** - Arquitetura bem definida
-- **JWT obrigatório** - Segurança implementada
-- **Idempotência** - Operações seguras para retry
-- **Swagger completo** - Documentação interativa
-- **Testes automatizados** - Unitários e integração
+- **JWT obrigatï¿½rio** - Seguranï¿½a implementada
+- **Idempotï¿½ncia** - Operaï¿½ï¿½es seguras para retry
+- **Swagger completo** - Documentaï¿½ï¿½o interativa
+- **Testes automatizados** - Unitï¿½rios e integraï¿½ï¿½o
 - **Docker-compose** - Deploy containerizado
 - **SQLite** - Banco de dados conforme solicitado
 
 ### Diferenciais Implementados
-- **Kafka** - Mensageria assíncrona para tarifas
+- **Kafka** - Mensageria assï¿½ncrona para tarifas
 - **Nginx Load Balancer** - Escalabilidade
-- **BackgroundService** - Processamento assíncrono
+- **BackgroundService** - Processamento assï¿½ncrono
 - **Health Checks** - Monitoramento
 - **Structured Logging** - Observabilidade
 
 ## Tipos de Erro Padronizados
 
-| Código | Tipo | Descrição |
+| Cï¿½digo | Tipo | Descriï¿½ï¿½o |
 |--------|------|-----------|
-| `INVALID_DOCUMENT` | 400 | CPF inválido |
-| `USER_UNAUTHORIZED` | 401 | Credenciais inválidas |
-| `INVALID_ACCOUNT` | 400 | Conta não encontrada |
+| `INVALID_DOCUMENT` | 400 | CPF invï¿½lido |
+| `USER_UNAUTHORIZED` | 401 | Credenciais invï¿½lidas |
+| `INVALID_ACCOUNT` | 400 | Conta nï¿½o encontrada |
 | `INACTIVE_ACCOUNT` | 400 | Conta inativa |
-| `INVALID_VALUE` | 400 | Valor inválido |
-| `INVALID_TYPE` | 400 | Tipo de movimentação inválido |
+| `INVALID_VALUE` | 400 | Valor invï¿½lido |
+| `INVALID_TYPE` | 400 | Tipo de movimentaï¿½ï¿½o invï¿½lido |
 | `INSUFFICIENT_FUNDS` | 400 | Saldo insuficiente |
 
-## Documentação
+## Documentaï¿½ï¿½o
 
 - [Arquitetura Detalhada](docs/ARCHITECTURE.md)
 - [Guia de APIs](docs/API_GUIDE.md)
 - [Deploy com Docker](deploy/)
 - [Sistema AnaBank](SISTEMA-ANABANK.md)
-- [Guia Rápido](GUIA-RAPIDO.md)
+- [Guia Rï¿½pido](GUIA-RAPIDO.md)
 
-## Contribuição
+## Contribuiï¿½ï¿½o
 
 1. Fork o projeto
 2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
@@ -243,10 +243,10 @@ docker-compose -f docker-compose.production.yml logs -f fees-worker
 4. Push: `git push origin feature/nova-funcionalidade`
 5. Abra um Pull Request
 
-## Licença
+## Licenï¿½a
 
-Este projeto está sob a licença MIT.
+Este projeto estï¿½ sob a licenï¿½a MIT.
 
 ---
 
-**AnaBank - Seu banco digital de confiança!**
+**AnaBank - Seu banco digital de confianï¿½a!**

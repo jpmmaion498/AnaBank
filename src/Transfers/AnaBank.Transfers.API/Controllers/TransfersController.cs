@@ -64,7 +64,6 @@ public class TransfersController : ControllerBase
 
     private string GetCurrentAccountId()
     {
-        // Buscar accountId nas diferentes possibilidades
         var accountId = User.FindFirst("sub")?.Value ??
                        User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
                        User.FindFirst("accountId")?.Value;
@@ -89,5 +88,4 @@ public class TransfersController : ControllerBase
     }
 }
 
-// DTOs para requests
 public record MakeTransferRequest(string DestinationAccountNumber, decimal Value);
