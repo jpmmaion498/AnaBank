@@ -17,7 +17,6 @@ public class FeeProcessingBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Aguardar um pouco para a aplicação web inicializar completamente
         await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
         
         _logger.LogInformation("Fee Processing Background Service started (delayed startup)");
@@ -36,7 +35,6 @@ public class FeeProcessingBackgroundService : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in Fee Processing Background Service - service will continue running");
-            // Não quebrar a aplicação, apenas logar o erro
         }
         finally
         {

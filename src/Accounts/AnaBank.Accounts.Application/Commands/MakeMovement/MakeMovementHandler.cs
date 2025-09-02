@@ -17,12 +17,10 @@ public class MakeMovementHandler : IRequestHandler<MakeMovementCommand>
 
     public async Task Handle(MakeMovementCommand request, CancellationToken cancellationToken)
     {
-        // Determinar a conta de destino
         string targetAccountId;
         
         if (!string.IsNullOrEmpty(request.AccountNumber))
         {
-            // Se informou número da conta, validar se é diferente da conta logada e se é crédito
             if (request.Type != "C")
                 throw new InvalidOperationException("INVALID_TYPE");
                 
@@ -41,28 +39,22 @@ public class MakeMovementHandler : IRequestHandler<MakeMovementCommand>
         }
         else
         {
-            // Usar a conta do usuário logado
             targetAccountId = request.AccountId;
         }
 
-        // Validar se a conta existe
         var account = await _accountRepository.GetByIdAsync(targetAccountId);
         if (account == null)
             throw new InvalidOperationException("INVALID_ACCOUNT");
 
-        // Validar se a conta está ativa
         if (!account.IsActive)
             throw new InvalidOperationException("INACTIVE_ACCOUNT");
 
-        // Validar valor
         if (request.Value <= 0)
             throw new InvalidOperationException("INVALID_VALUE");
 
-        // Validar tipo
         if (request.Type != "C" && request.Type != "D")
             throw new InvalidOperationException("INVALID_TYPE");
 
-        // Se for débito na própria conta, verificar saldo
         if (request.Type == "D" && targetAccountId == request.AccountId)
         {
             var currentBalance = await _movementRepository.GetBalanceAsync(targetAccountId);
@@ -70,7 +62,6 @@ public class MakeMovementHandler : IRequestHandler<MakeMovementCommand>
                 throw new InvalidOperationException("INSUFFICIENT_FUNDS");
         }
 
-        // Criar movimentação
         var movement = new Movement(targetAccountId, request.Type, request.Value);
         await _movementRepository.CreateAsync(movement);
     }

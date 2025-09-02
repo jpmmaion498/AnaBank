@@ -16,7 +16,6 @@ public class IdempotencyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Verificar se é uma operação que deve ser idempotente (POST, PUT, PATCH)
         if (!ShouldCheckIdempotency(context.Request))
         {
             await _next(context);
@@ -31,7 +30,6 @@ public class IdempotencyMiddleware
             return;
         }
 
-        // Tentar obter resposta cached
         var idempotencyService = context.RequestServices.GetService<IIdempotencyService>();
         if (idempotencyService != null)
         {
@@ -43,14 +41,12 @@ public class IdempotencyMiddleware
                 return;
             }
 
-            // Interceptar resposta para salvar
             var originalBodyStream = context.Response.Body;
             using var responseBody = new MemoryStream();
             context.Response.Body = responseBody;
 
             await _next(context);
 
-            // Salvar resposta se foi bem-sucedida
             if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
             {
                 responseBody.Seek(0, SeekOrigin.Begin);

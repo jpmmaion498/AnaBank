@@ -16,17 +16,15 @@ public static class InfrastructureExtensions
         services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
         
-        // HTTP Client configurado para desenvolvimento (ignorar SSL)
         services.AddHttpClient<IAccountsClient, AccountsClient>(client =>
         {
             client.DefaultRequestHeaders.Add("User-Agent", "AnaBank.Transfers.API/1.0");
         })
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
         {
-            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true // Ignorar SSL em desenvolvimento
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         });
         
-        // Kafka Producer Service
         services.AddScoped<IKafkaProducerService, KafkaProducerService>();
 
         return services;

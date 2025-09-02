@@ -34,7 +34,7 @@ public class IdempotencyRepository : IIdempotencyRepository
         await connection.ExecuteAsync(sql, new
         {
             Key = key,
-            Request = "", // Para transfers, não precisamos persistir a requisição completa
+            Request = "",
             Response = response
         });
     }

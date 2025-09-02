@@ -12,10 +12,9 @@ using AnaBank.Accounts.API.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração JWT
 var jwtSettings = new JwtSettings
 {
-    SecretKey = builder.Configuration["Jwt:SecretKey"] ?? "sua-chave-secreta-super-segura-com-pelo-menos-32-caracteres",
+    SecretKey = builder.Configuration["Jwt:SecretKey"] ?? "anabank-jwt-secret-key-for-development-only",
     Issuer = builder.Configuration["Jwt:Issuer"] ?? "AnaBank",
     Audience = builder.Configuration["Jwt:Audience"] ?? "AnaBank.APIs",
     ExpirationHours = int.Parse(builder.Configuration["Jwt:ExpirationHours"] ?? "24")
@@ -24,37 +23,29 @@ var jwtSettings = new JwtSettings
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
     "Data Source=anabank_accounts.db";
 
 builder.Services.AddAccountsInfrastructure(connectionString);
 
-// Kafka Fee Consumer Service (opcional - apenas se Kafka estiver configurado)
 if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Kafka")))
 {
     builder.Services.AddScoped<IFeeConsumerService, FeeConsumerService>();
     builder.Services.AddHostedService<FeeProcessingBackgroundService>();
-    Console.WriteLine("? Kafka Fee Consumer Service registered");
+    Console.WriteLine("Kafka Fee Consumer Service registered");
 }
 else
 {
-    Console.WriteLine("?? Kafka not configured - Fee Consumer Service disabled");
+    Console.WriteLine("Kafka not configured - Fee Consumer Service disabled");
 }
 
-// MediatR
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(AnaBank.Accounts.Application.Commands.RegisterAccount.RegisterAccountCommand).Assembly);
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-// FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(AnaBank.Accounts.Application.Commands.RegisterAccount.RegisterAccountValidator).Assembly);
-
-// Controllers
 builder.Services.AddControllers();
-
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -105,11 +96,10 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // Para desenvolvimento
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -126,7 +116,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -139,20 +128,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AnaBank Accounts API v1");
-        //c.RoutePrefix = string.Empty; // Swagger na raiz
     });
 }
 
 app.UseCors("AllowAll");
 
-// Middleware para tratamento global de exceções
 app.UseExceptionHandler(appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -172,18 +158,13 @@ app.UseExceptionHandler(appBuilder =>
     });
 });
 
-// Middleware de idempotência
 app.UseIdempotency();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Health check
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
-// Inicializar banco de dados
 await InitializeDatabase(connectionString);
 
 app.Run();
@@ -192,7 +173,6 @@ static async Task InitializeDatabase(string connectionString)
 {
     try
     {
-        // SEMPRE remover o banco existente para garantir reset completo
         var dbPath = connectionString.Replace("Data Source=", "");
         if (File.Exists(dbPath))
         {
@@ -200,7 +180,6 @@ static async Task InitializeDatabase(string connectionString)
             Console.WriteLine($"Banco existente removido: {dbPath}");
         }
 
-        // Criar o script SQL inline para garantir que sempre funcione
         var createTablesScript = @"
 CREATE TABLE IF NOT EXISTS contacorrente (
     idcontacorrente TEXT(37) PRIMARY KEY,
@@ -248,9 +227,8 @@ CREATE INDEX IF NOT EXISTS idx_contacorrente_numero ON contacorrente(numero);
     catch (Exception ex)
     {
         Console.WriteLine($"Error initializing accounts database: {ex.Message}");
-        throw; // Re-throw para facilitar debug
+        throw;
     }
 }
 
-// Tornar a classe Program acessível para testes
 public partial class Program { }

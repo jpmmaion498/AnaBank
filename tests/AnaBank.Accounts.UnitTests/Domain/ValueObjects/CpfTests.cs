@@ -7,15 +7,13 @@ namespace AnaBank.Accounts.UnitTests.Domain.ValueObjects;
 public class CpfTests
 {
     [Theory]
-    [InlineData("12345678909")]
-    [InlineData("123.456.789-09")]
     [InlineData("11144477735")]
+    [InlineData("111.444.777-35")]
+    [InlineData("52998224725")]
     public void Constructor_ValidCpf_ShouldCreateInstance(string cpfValue)
     {
-        // Act
         var cpf = new Cpf(cpfValue);
 
-        // Assert
         cpf.Value.Should().Be(cpfValue.Replace(".", "").Replace("-", ""));
     }
 
@@ -23,13 +21,12 @@ public class CpfTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    [InlineData("12345678900")] // CPF inválido
-    [InlineData("11111111111")] // Todos os dígitos iguais
-    [InlineData("123")]         // Muito curto
-    [InlineData("123456789012345")] // Muito longo
+    [InlineData("12345678900")]
+    [InlineData("11111111111")]
+    [InlineData("123")]
+    [InlineData("123456789012345")]
     public void Constructor_InvalidCpf_ShouldThrowException(string invalidCpf)
     {
-        // Act & Assert
         FluentActions.Invoking(() => new Cpf(invalidCpf))
             .Should().Throw<ArgumentException>()
             .WithMessage("*CPF*");
@@ -38,36 +35,28 @@ public class CpfTests
     [Fact]
     public void ToString_ShouldReturnCpfValue()
     {
-        // Arrange
-        var cpf = new Cpf("12345678909");
+        var cpf = new Cpf("11144477735");
 
-        // Act
         var result = cpf.ToString();
 
-        // Assert
-        result.Should().Be("12345678909");
+        result.Should().Be("11144477735");
     }
 
     [Fact]
     public void ImplicitConversion_FromString_ShouldWork()
     {
-        // Act
-        Cpf cpf = "12345678909";
+        Cpf cpf = "11144477735";
 
-        // Assert
-        cpf.Value.Should().Be("12345678909");
+        cpf.Value.Should().Be("11144477735");
     }
 
     [Fact]
     public void ImplicitConversion_ToString_ShouldWork()
     {
-        // Arrange
-        var cpf = new Cpf("12345678909");
+        var cpf = new Cpf("11144477735");
 
-        // Act
         string cpfString = cpf;
 
-        // Assert
-        cpfString.Should().Be("12345678909");
+        cpfString.Should().Be("11144477735");
     }
 }

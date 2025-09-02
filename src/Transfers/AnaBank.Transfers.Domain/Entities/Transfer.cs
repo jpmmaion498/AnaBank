@@ -7,9 +7,9 @@ public class Transfer
     public string DestinationAccountId { get; private set; }
     public decimal Value { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public string Status { get; private set; } = "COMPLETED"; // COMPLETED, FAILED, REVERSED
+    public string Status { get; private set; } = "COMPLETED";
 
-    private Transfer() { } // EF Core
+    private Transfer() { }
 
     public Transfer(string originAccountId, string destinationAccountId, decimal value)
     {
